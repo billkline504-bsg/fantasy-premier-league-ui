@@ -57,10 +57,10 @@ src/
   shell/                — top bar, nav, off-canvas mobile menu
   screens/              — one folder per screen area; Profile (F-UI-001.1/001.2), EPL
                           (F-UI-001.3/001.4), Draft Board (F-UI-002.1/002.2), Squad
-                          (F-UI-002.4), Dashboard (F-UI-003.1), and Lineup (F-UI-003.2) are
-                          fully implemented against the real API — every other screen is
-                          still a scaffold placeholder (see docs/aidlc/04-user-stories/ for
-                          what each should become)
+                          (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), and
+                          Table (F-UI-003.3) are fully implemented against the real API —
+                          every other screen is still a scaffold placeholder (see
+                          docs/aidlc/04-user-stories/ for what each should become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -70,7 +70,7 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Six screens are fully implemented:
+are real and working (see the test suite). Seven screens are fully implemented:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -94,6 +94,10 @@ are real and working (see the test suite). Six screens are fully implemented:
   this required **designing a real interaction the mock-up never depicted at all**: adding
   and removing players between the roster and reserves (new BRD UIR-046a) — without it, the
   screen couldn't do the one thing it exists for.
+- **Table** (`src/screens/league/TableScreen.tsx`) — the full League Table (every column BRD
+  UIR-064 lists), the viewer's row highlighted, the points-per-result and tie-break-order
+  disclosures, per BRD UIR-064–068. Reused every hook already built for Dashboard/Squad with
+  no new reconciliation findings — the simplest screen so far.
 
 Building these against the real API rather than the mock-up surfaced eleven backend
 data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.6:
