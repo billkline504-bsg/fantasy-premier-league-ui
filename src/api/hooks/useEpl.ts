@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../client';
-import type { Club, ClubStanding, Fixture, Gameweek, Season } from '../types';
+import type { Club, ClubStanding, Fixture, Gameweek, Player } from '../types';
+import { useCurrentSeason } from './useLeagueSeason';
 
 // Query-hook module for the Player & EPL Reference Data controller area (Architecture v1.2
 // §6.3). Backs F-UI-001.3/001.4 (EPL Table & Fixtures).
@@ -24,29 +25,14 @@ export function useClubsById() {
  * There is no endpoint to discover which EPL seasons exist, or which one is "current"
  * (API Consumption Specification v1.2 §2.3d) — `eplSeasonIdentifier` only ever appears as an
  * input the caller must already know, or as a field on objects that presuppose it. This client
- * infers it from the active League's own Seasons (which real-world EPL season a League's
- * current Season is tied to), on the reasoning that there is only one real Premier League
+ * infers it from the active League's own current Season (`useCurrentSeason`, shared with
+ * Draft/FantasyTeam lookups), on the reasoning that there is only one real Premier League
  * season running at a time, so the *value* this resolves to is genuinely league-independent
  * (BRD UIR-074) even though the *mechanism* consults one League's data to find it.
  */
-function pickCurrentSeason(seasons: Season[]): Season | undefined {
-  const byStatus = (status: Season['status']) => seasons.find((s) => s.status === status);
-  return (
-    byStatus('InSeason') ??
-    byStatus('DraftInProgress') ??
-    byStatus('Setup') ??
-    [...seasons].sort((a, b) => b.startDate.localeCompare(a.startDate))[0]
-  );
-}
-
 export function useCurrentEplSeasonIdentifier(leagueId: string) {
-  const seasons = useQuery({
-    queryKey: ['leagues', leagueId, 'seasons'] as const,
-    queryFn: async () => (await apiRequest<Season[]>(`/leagues/${leagueId}/seasons`)).data,
-    enabled: Boolean(leagueId),
-  });
-  const current = seasons.data ? pickCurrentSeason(seasons.data) : undefined;
-  return { data: current?.eplSeasonIdentifier, isPending: seasons.isPending, error: seasons.error };
+  const season = useCurrentSeason(leagueId);
+  return { data: season.data?.eplSeasonIdentifier, isPending: season.isPending, error: season.error };
 }
 
 export function useEplTable(eplSeasonIdentifier: string | undefined) {
@@ -65,6 +51,26 @@ export function useEplGameweeks(eplSeasonIdentifier: string | undefined) {
       (await apiRequest<Gameweek[]>('/epl/gameweeks', { query: { eplSeasonIdentifier } })).data,
     enabled: Boolean(eplSeasonIdentifier),
   });
+}
+
+/**
+ * There's no batch "get players by id" endpoint, so this fires one `getPlayer` request per id
+ * via `useQueries` — fine for the small counts this is actually used for (e.g. a handful of
+ * recent draft picks), not meant for resolving a whole pool's worth of ids at once.
+ */
+export function usePlayersByIds(playerIds: string[]) {
+  const results = useQueries({
+    queries: playerIds.map((playerId) => ({
+      queryKey: ['epl', 'players', playerId] as const,
+      queryFn: async () => (await apiRequest<Player>(`/epl/players/${playerId}`)).data,
+      staleTime: Infinity, // reference data
+    })),
+  });
+  const byId = new Map<string, Player>();
+  results.forEach((r) => {
+    if (r.data) byId.set(r.data.playerId, r.data);
+  });
+  return { data: byId, isPending: results.some((r) => r.isPending) };
 }
 
 export function useGameweekFixtures(gameweekId: string | undefined) {
