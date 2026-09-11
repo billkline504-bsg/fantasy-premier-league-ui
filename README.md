@@ -58,10 +58,11 @@ src/
   screens/              — one folder per screen area; Profile (F-UI-001.1/001.2), EPL
                           (F-UI-001.3/001.4), Draft Board (F-UI-002.1/002.2), Squad
                           (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), Table
-                          (F-UI-003.3), Schedule (F-UI-003.4), and Season Predictions
-                          (F-UI-003.5) are fully implemented against the real API — every
-                          other screen is still a scaffold placeholder (see
-                          docs/aidlc/04-user-stories/ for what each should become)
+                          (F-UI-003.3), Schedule (F-UI-003.4), Season Predictions
+                          (F-UI-003.5), and Messages (F-UI-004.1) are fully implemented
+                          against the real API — every other screen is still a scaffold
+                          placeholder (see docs/aidlc/04-user-stories/ for what each should
+                          become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -71,7 +72,7 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Nine screens are fully implemented:
+are real and working (see the test suite). Ten screens are fully implemented:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -109,6 +110,13 @@ are real and working (see the test suite). Nine screens are fully implemented:
   of the tie-break mechanics and where it sits in the overall tie-break order, and the League
   Predictions list — every other manager's value stays hidden, and isn't even requested, until
   the season completes, per BRD UIR-081–088.
+- **Messages** (`src/screens/messages/MessagesScreen.tsx`, the first Phase 4 screen) — an
+  Administrator-gated composer (hidden with an explanation for every other member) publishing
+  to a reverse-chronological feed, a just-published message visually distinguished at the top
+  of the feed for the rest of the session, plain-text bodies with line breaks preserved, and
+  the permanent-retention disclosure, per BRD UIR-118–124. Needed no new API Consumption
+  Specification revision — `LeagueMessage`/`createLeagueMessage` matched what the BRD already
+  assumed.
 
 Building these against the real API rather than the mock-up surfaced fourteen backend
 data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.8:
