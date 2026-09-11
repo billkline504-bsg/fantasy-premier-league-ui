@@ -26,3 +26,6 @@ export type DraftStatus = components['schemas']['DraftStatus'];
 export type DraftPlayerPoolEntry = components['schemas']['DraftPlayerPoolEntry'];
 export type DraftSelection = components['schemas']['DraftSelection'];
 export type DraftSelectionPage = components['schemas']['DraftSelectionPage'];
+export type AcquisitionType = components['schemas']['AcquisitionType'];
+export type SquadPlayerView = components['schemas']['SquadPlayerView'];
+export type ReplacementOpportunity = components['schemas']['ReplacementOpportunity'];

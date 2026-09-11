@@ -2,7 +2,7 @@
 
 This folder holds every artifact produced for the Fantasy EPL League Manager **web UI** ("Matchday Manager") through the same AIDLC (AI-driven documentation/development lifecycle) pipeline convention used by the backend (`fantasy-premier-league`) repository. Each subfolder is one stage of that pipeline, numbered so they sort in the order the pipeline actually runs.
 
-The actual application (a Vite + React + TypeScript project scaffolded per `02-architecture/`) lives at this repository's root, alongside this `docs/` folder — see the root [`README.md`](../../README.md) for how to run it. It implements the application shell, routing, auth/session handling, theming, and the shared component patterns described in `02-architecture/`, plus three fully working screens: **Profile** (F-UI-001.1/001.2), **EPL** (F-UI-001.3/001.4, current season only), and **Draft Board** (F-UI-002.1/002.2, available players only — see `05-api-specification/`'s v1.2–v1.3 for why). Building these against the real API surfaced eight backend data-availability/model gaps recorded across API Consumption Specification v1.1–v1.3, the most consequential being that `FantasyTeam` has no distinct "team name" field at all — only a username — which affects nearly every screen still to be built, not just Draft Board. Every other screen under `src/screens/` is still a scaffold placeholder pending the feature work described in `04-user-stories/`.
+The actual application (a Vite + React + TypeScript project scaffolded per `02-architecture/`) lives at this repository's root, alongside this `docs/` folder — see the root [`README.md`](../../README.md) for how to run it. It implements the application shell, routing, auth/session handling, theming, and the shared component patterns described in `02-architecture/`, plus four fully working screens: **Profile** (F-UI-001.1/001.2), **EPL** (F-UI-001.3/001.4, current season only), **Draft Board** (F-UI-002.1/002.2, available players only), and **Squad** (F-UI-002.4). Building these against the real API surfaced nine backend data-availability/model gaps recorded across API Consumption Specification v1.1–v1.4, the most consequential being that `FantasyTeam` has no distinct "team name" field at all — only a username — which affects nearly every screen still to be built, not just Draft Board. Every other screen under `src/screens/` is still a scaffold placeholder pending the feature work described in `04-user-stories/`.
 
 ## Relationship to the backend repository
 
@@ -55,7 +55,7 @@ Every artifact is **append-only**, exactly as in the backend repository: a chang
 | Feature Behavior Specs — Phase 2 | v1.0 |
 | Feature Behavior Specs — Phase 3 | v1.0 |
 | Feature Behavior Specs — Phase 4 | v1.0 |
-| API Consumption Specification | v1.3 |
+| API Consumption Specification | v1.4 |
 
 ## Not yet produced
 
