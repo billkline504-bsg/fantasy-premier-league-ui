@@ -14,7 +14,7 @@ backend repository:
 - [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.2)
 - [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.6)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.7)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -57,10 +57,11 @@ src/
   shell/                — top bar, nav, off-canvas mobile menu
   screens/              — one folder per screen area; Profile (F-UI-001.1/001.2), EPL
                           (F-UI-001.3/001.4), Draft Board (F-UI-002.1/002.2), Squad
-                          (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), and
-                          Table (F-UI-003.3) are fully implemented against the real API —
-                          every other screen is still a scaffold placeholder (see
-                          docs/aidlc/04-user-stories/ for what each should become)
+                          (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), Table
+                          (F-UI-003.3), and Schedule (F-UI-003.4) are fully implemented
+                          against the real API — every other screen is still a scaffold
+                          placeholder (see docs/aidlc/04-user-stories/ for what each should
+                          become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -70,7 +71,7 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Seven screens are fully implemented:
+are real and working (see the test suite). Eight screens are fully implemented:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -98,9 +99,13 @@ are real and working (see the test suite). Seven screens are fully implemented:
   UIR-064 lists), the viewer's row highlighted, the points-per-result and tie-break-order
   disclosures, per BRD UIR-064–068. Reused every hook already built for Dashboard/Squad with
   no new reconciliation findings — the simplest screen so far.
+- **Schedule** (`src/screens/league/ScheduleScreen.tsx`) — Gameweek-tabbed Head-to-Head
+  fixtures (Results/Upcoming/Fixtures labels, pre-selecting the current Gameweek), fetching
+  the whole season's schedule in one call so future Gameweeks are already loaded, per BRD
+  UIR-069–073.
 
-Building these against the real API rather than the mock-up surfaced eleven backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.6:
+Building these against the real API rather than the mock-up surfaced twelve backend
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.7:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
@@ -122,6 +127,9 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
   already seen for seasons and drafts), and `LeagueMessage` has no category field, so
   Dashboard's news feed is the real Messages feed with no Admin/Injury/Result tag — that would
   need a backend addition to implement as the BRD depicts it.
+- `HeadToHeadMatch` has no per-match kickoff-time field — every unresolved match in a Gameweek
+  on Schedule shows the same Gameweek-level first-kickoff time, not a fabricated distinct time
+  per match the way the mock-up showed.
 
 Every other screen under `src/screens/` is still a scaffold placeholder.
 `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both carry `TODO`s for wiring
