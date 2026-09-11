@@ -40,3 +40,4 @@ export type SeasonGoalPrediction = components['schemas']['SeasonGoalPrediction']
 export type AdminActionType = components['schemas']['AdminActionType'];
 export type AdministrativeAction = components['schemas']['AdministrativeAction'];
 export type AdministrativeActionPage = components['schemas']['AdministrativeActionPage'];
+export type ScoreOverride = components['schemas']['ScoreOverride'];

@@ -14,7 +14,7 @@ backend repository:
 - [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.2)
 - [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.9)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.10)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -59,10 +59,10 @@ src/
                           (F-UI-001.3/001.4), Draft Board (F-UI-002.1/002.2), Squad
                           (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), Table
                           (F-UI-003.3), Schedule (F-UI-003.4), Season Predictions
-                          (F-UI-003.5), Messages (F-UI-004.1), and Audit Log (F-UI-004.2)
-                          are fully implemented against the real API — every other screen
-                          is still a scaffold placeholder (see docs/aidlc/04-user-stories/
-                          for what each should become)
+                          (F-UI-003.5), Messages (F-UI-004.1), Audit Log (F-UI-004.2), and
+                          Score Corrections (F-UI-004.3) are fully implemented against the
+                          real API — every other screen is still a scaffold placeholder
+                          (see docs/aidlc/04-user-stories/ for what each should become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -72,7 +72,7 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Eleven screens are fully implemented:
+are real and working (see the test suite). Twelve screens are fully implemented:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -124,9 +124,15 @@ are real and working (see the test suite). Eleven screens are fully implemented:
   UIR-125–134. The first screen to actually build a "Load more" UI atop this client's cursor
   pagination contract, and the sharpest example yet of a schema under-specified for what the
   UI needs — see below.
+- **Score Corrections** (`src/screens/admin/ScoreCorrectionsScreen.tsx`,
+  League-Administrator-only) — the three-tier authority-order banner, an override form, a
+  live "Manually Overridden" value-compare panel once an override is applied, and
+  Active/Recently-Undone override tables reconstructed from Audit Log entries, per BRD
+  UIR-135–144. **This screen surfaced the single most consequential finding in the whole
+  project** — see below.
 
-Building these against the real API rather than the mock-up surfaced sixteen backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.9:
+Building these against the real API rather than the mock-up surfaced eighteen backend
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.10:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
@@ -164,6 +170,13 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
   client renders a generic before/after key diff as the row summary; the team-scope filter can
   likewise only offer the current season's teams, since Audit Log itself isn't season-scoped
   but there's no league-wide team-listing endpoint to build a fuller dropdown from.
+- There is no endpoint anywhere in the API to list existing score overrides, and — more
+  severely — no endpoint at all to look up a "PlayerPerformance" record (a player's stats for
+  a given Gameweek). Score Corrections' override form therefore cannot offer a player+Gameweek
+  picker or a live official-value comparison the way the BRD depicts; it takes a raw
+  `playerPerformanceId` an administrator must already have from elsewhere. Its Active/
+  Recently-Undone tables are reconstructed from Audit Log's own override-related entries
+  instead of any dedicated listing endpoint.
 
 Every other screen under `src/screens/` is still a scaffold placeholder.
 `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both carry `TODO`s for wiring

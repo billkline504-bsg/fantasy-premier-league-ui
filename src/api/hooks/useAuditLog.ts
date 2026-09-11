@@ -15,9 +15,9 @@ export interface AuditLogFilter {
   fantasyTeamId?: string;
 }
 
-export function useAuditLog(leagueId: string, filter: AuditLogFilter) {
+export function useAuditLog(leagueId: string, filter: AuditLogFilter, pageSize = 50) {
   return useInfiniteQuery({
-    queryKey: ['leagues', leagueId, 'audit', filter] as const,
+    queryKey: ['leagues', leagueId, 'audit', filter, pageSize] as const,
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) =>
       (
         await apiRequest<AdministrativeActionPage>(`/leagues/${leagueId}/audit`, {
@@ -26,7 +26,7 @@ export function useAuditLog(leagueId: string, filter: AuditLogFilter) {
             from: filter.from,
             to: filter.to,
             fantasyTeamId: filter.fantasyTeamId,
-            limit: 50,
+            limit: pageSize,
             cursor: pageParam,
           },
         })
