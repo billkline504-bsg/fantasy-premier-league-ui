@@ -1,0 +1,49 @@
+# AIDLC Documentation — Matchday Manager Web Client
+
+This folder holds every artifact produced for the Fantasy EPL League Manager **web UI** ("Matchday Manager") through the same AIDLC (AI-driven documentation/development lifecycle) pipeline convention used by the backend (`fantasy-premier-league`) repository. Each subfolder is one stage of that pipeline, numbered so they sort in the order the pipeline actually runs.
+
+## Relationship to the backend repository
+
+This UI is a client of the domain already specified in `fantasy-premier-league`. It does not re-derive business rules — it interprets them into screens, interactions, and presentation-layer requirements. Wherever a UI requirement exists to surface or enforce a rule owned by the backend, this documentation cites that rule's `BR-###` identifier rather than restating it. The backend's own pipeline artifacts are the authoritative source for those rules:
+
+- `../../fantasy-premier-league/docs/aidlc/01-requirements/` — Business Requirements Document (BRD), latest v1.17
+- `../../fantasy-premier-league/docs/aidlc/02-architecture/` — Architecture and Domain Model, latest v1.15
+- `../../fantasy-premier-league/docs/aidlc/05-api-specification/` — OpenAPI Specification, v1.0
+- `../../fantasy-premier-league/API_ENDPOINTS.md` and `EplFantasy.postman_collection.json` — a working REST surface this UI will consume
+- `../mockup/index.html` (and its versioned `index.v{N}.html` snapshots) — the illustrative HTML mock-up this UI's first requirements pass was interpreted from, vendored into this repo at `docs/mockup/` for convenience. The backend repository's own `mockup/` folder remains the original source; if the two ever diverge, treat the backend copy as canonical unless this repo has explicitly taken over mock-up iteration.
+
+## Pipeline stages
+
+```
+00-domain-specification → 01-requirements → 02-architecture → 03-epics-and-backlog → 04-user-stories → 05-api-specification → 06-database-migrations → 07-testing-strategy → 08-implementation-tasks
+```
+
+The backend's `06-database-migrations` and `07-testing-strategy` stages (in the sense of physical schema and DB-level test suites) don't have a direct UI analog; when this pipeline reaches those numbers, they'll be re-purposed for this project's actual needs (e.g., a component/visual testing strategy) rather than left unused — see each stage's own front matter once it exists for what it was repurposed to mean here.
+
+| Stage | Produces |
+|---|---|
+| `00` seed | The inputs this UI's requirements are interpreted from: the mock-up and the backend BRD/Architecture |
+| `01` requirements | BRD — screen inventory, `UIR-###` UI requirements, traceability to backend `BR-###` |
+| `02` architecture | Frontend architecture: framework/stack choice, component structure, state management, API client layer |
+| `03` epics & backlog | Screens/features refined into a prioritized, dependency-ordered build list |
+| `04` user stories | Acceptance criteria per screen/feature |
+| `05` API specification | The consumed contract — generated from or reconciled against the backend's OpenAPI spec |
+| `06`–`08` | Repurposed as this project's needs become concrete (build/test/deploy tooling, implementation task breakdown) |
+
+| Folder | Stage | Contents |
+|---|---|---|
+| `01-requirements/` | Requirements | The **Business Requirements Document (BRD)** — the authoritative source of every `UIR-###` UI requirement for this web client, interpreted from the mock-up and cross-referenced against the backend BRD. |
+
+## Versioning convention
+
+Every artifact is **append-only**, exactly as in the backend repository: a change never edits a prior version's file — it's saved as a new `v{N}.md` in the same folder, one integer higher than the previous version. The highest version number in a folder is always the current baseline for that stage. Each document's own "Version History" section explains what changed and why between versions.
+
+## Current baseline (highest version in each folder)
+
+| Stage | Latest version |
+|---|---|
+| Requirements (BRD) | v1.0 |
+
+## Not yet produced
+
+Every stage after `01-requirements` — this pipeline has just started.
