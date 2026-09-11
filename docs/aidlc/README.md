@@ -33,6 +33,9 @@ The backend's `06-database-migrations` and `07-testing-strategy` stages (in the 
 | Folder | Stage | Contents |
 |---|---|---|
 | `01-requirements/` | Requirements | The **Business Requirements Document (BRD)** — the authoritative source of every `UIR-###` UI requirement for this web client, interpreted from the mock-up and cross-referenced against the backend BRD. |
+| `02-architecture/` | Architecture | Frontend stack (React 18 + TypeScript + Vite), application structure, state management, the API client/codegen layer, routing (including the Platform nav section), live-data/polling strategy, and baseline loading/error/empty/pagination patterns. |
+| `03-epics-and-backlog/` | Epics & Backlog | The BRD's 17 screens refined into a prioritized, dependency-ordered feature list (`F-UI-###.#`), grouped into a foundational Phase 0 plus the same four build phases the backend uses, each feature citing the `UIR-###` range it implements. |
+| `04-user-stories/` | User Stories / Feature Behavior Specs | Given/When/Then acceptance criteria for every feature in the backlog, grouped into the same four phase subfolders as the backend (`phase-1-foundation/`, `phase-2-draft-and-squad/`, `phase-3-weekly-gameplay/`, `phase-4-operations/`). |
 
 ## Versioning convention
 
@@ -42,8 +45,14 @@ Every artifact is **append-only**, exactly as in the backend repository: a chang
 
 | Stage | Latest version |
 |---|---|
-| Requirements (BRD) | v1.0 |
+| Requirements (BRD) | v1.1 |
+| Architecture | v1.0 |
+| Epic and Feature Backlog | v1.0 |
+| Feature Behavior Specs — Phase 1 | v1.0 |
+| Feature Behavior Specs — Phase 2 | v1.0 |
+| Feature Behavior Specs — Phase 3 | v1.0 |
+| Feature Behavior Specs — Phase 4 | v1.0 |
 
 ## Not yet produced
 
-Every stage after `01-requirements` — this pipeline has just started.
+`05-api-specification` onward — this repo's OpenAPI consumption contract, build/test tooling, and implementation task breakdown. Also not yet produced anywhere in this pipeline: the authentication/onboarding/league-creation screens explicitly deferred by BRD v1.1 (DEC-UI-007).
