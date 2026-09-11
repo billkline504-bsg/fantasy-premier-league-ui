@@ -11,6 +11,8 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   isRestoringSession: boolean;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
+  /** BRD UIR-181: signs the new user in immediately — same session-application path as `login`. */
+  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 

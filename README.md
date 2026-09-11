@@ -10,11 +10,11 @@ Every requirement, architecture decision, and feature spec behind this client li
 [`docs/aidlc/`](docs/aidlc/README.md), following the same AIDLC pipeline convention as the
 backend repository:
 
-- [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.3)
-- [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.2)
-- [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog
+- [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.4)
+- [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.3)
+- [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog (latest: v1.1)
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.12)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.13)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -49,7 +49,7 @@ backend API (see the `fantasy-premier-league` repository's README for how to run
 
 ## Project layout
 
-Mirrors Architecture v1.1 §3:
+Mirrors Architecture v1.3 §3:
 
 ```
 src/
@@ -63,7 +63,9 @@ src/
                           Season Predictions (F-UI-003.5), Messages (F-UI-004.1), Audit Log
                           (F-UI-004.2), Score Corrections (F-UI-004.3), Security & Abuse
                           Protection (F-UI-004.4), Username Display Policy (F-UI-004.5),
-                          and History (F-UI-004.6)
+                          and History (F-UI-004.6). screens/auth/ (added past the mock-up's
+                          own scope, BRD v1.4 §8.17–8.20) holds Login, Register, Forgot/
+                          Reset Password, and Accept League Invitation (F-UI-001.5–001.8)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -74,7 +76,8 @@ src/
 
 The application shell, routing, auth session handling, theming, and shared component patterns
 are real and working (see the test suite). **All 17 screens from the mock-up are fully
-implemented** against the real API:
+implemented** against the real API, plus four more (Login, Register, Forgot/Reset Password,
+Accept League Invitation) that BRD v1.4 designed beyond the mock-up's own scope:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -152,8 +155,31 @@ implemented** against the real API:
   environment's seed data doesn't illustrate a given team/Gameweek combination, per BRD
   UIR-089–098. This was the last screen in the mock-up's 17-screen scope.
 
-Building these against the real API rather than the mock-up surfaced twenty-two backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.12:
+**Beyond the mock-up's own scope** (BRD v1.4 §8.17–8.20, resolving §12 item 1), four
+authentication/onboarding screens are also fully implemented — the first screens in this
+client with no mock-up to interpret at all:
+
+- **Login** (`src/screens/auth/LoginScreen.tsx`) — sign-in form, one generic invalid-credential
+  message (never reveals which half was wrong), and return-to-origin after a successful sign-in
+  (back to whatever protected page triggered the redirect, or the user's own most-recent league
+  Dashboard, or a "no leagues yet" empty state), per BRD UIR-173–177.
+- **Register** (`src/screens/auth/RegisterScreen.tsx`) — registration form with a live
+  password-strength meter (never a fixed composition checklist), an inline, recoverable
+  username-conflict error, and immediate sign-in on success (no separate Login step, since
+  registration already returns a full token pair), per BRD UIR-178–182.
+- **Forgot / Reset Password** (`src/screens/auth/ForgotPasswordScreen.tsx` +
+  `ResetPasswordScreen.tsx`) — a request form whose confirmation message is identical whether
+  or not the email actually matched an account (mirroring the backend's own unconditional-202
+  design), and a reset-confirmation form (reusing the same strength meter) with plain
+  "link no longer works" handling for an expired/used/invalid token, per BRD UIR-183–186.
+- **Accept League Invitation** (`src/screens/auth/AcceptInvitationScreen.tsx`) — routes an
+  anonymous visitor through Register/Login first (preserving the invitation, then resuming
+  automatically), states plainly that accepting adds them to a league without naming which one
+  (there's no way to preview an invitation before accepting), and redirects to that league's
+  Dashboard on success, per BRD UIR-187–190.
+
+Building these against the real API rather than the mock-up surfaced twenty-four backend
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.13:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
@@ -207,9 +233,18 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
   BRD calls for one — the identity-safety half of that same requirement (never confusing a
   retired manager with a later user reusing their username) already holds regardless, since
   every join in this client is by internal id, never by username.
+- `acceptInvitation`'s `410` response has no structured field distinguishing an expired,
+  already-accepted, or revoked invitation — Accept League Invitation shows one generic
+  "no longer valid" message rather than a guessed three-way distinction.
+- `listMyLeagues` is confirmed scoped to the caller's own League memberships, so it's used
+  directly to decide whether a newly-signed-in user has zero leagues (BRD UIR-177) — this
+  bypasses `ActiveLeagueContext`'s own still-placeholder league list (see below) rather than
+  waiting on that separately-tracked rewiring.
 
-Every screen from the mock-up is now implemented — nothing under `src/screens/` remains a
-scaffold placeholder. `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both
-still carry `TODO`s for wiring up real league-membership/admin-role data once it's available —
-read those before assuming any authorization check in this client is complete; the backend's
-own authorization remains the actual authority regardless.
+Every screen from the mock-up, plus the four auth/onboarding screens BRD v1.4 added beyond it,
+are now implemented — nothing under `src/screens/` remains a scaffold placeholder.
+`src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both still carry `TODO`s for
+wiring up real league-membership/admin-role data once it's available — the auth screens work
+around this narrowly (calling `listMyLeagues` directly for post-login landing) rather than
+fixing it, so read those `TODO`s before assuming any authorization check or league list in this
+client is complete; the backend's own authorization remains the actual authority regardless.

@@ -14,6 +14,7 @@ function renderTopBar(authOverrides: Partial<AuthContextValue> = {}) {
     isAuthenticated: true,
     isRestoringSession: false,
     login: async () => {},
+    register: async () => {},
     logout: async () => {},
     ...authOverrides,
   };

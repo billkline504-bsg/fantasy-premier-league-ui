@@ -1,19 +1,23 @@
 import { useState, type FormEvent } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../state/useAuth';
-import { ApiError } from '../../api/client';
+import { PostAuthRedirect } from '../../components/PostAuthRedirect';
+import { AuthLayout } from './AuthLayout';
 
-/**
- * Minimal, unstyled placeholder login form — Architecture v1.1 §7.1 explicitly assumes
- * exactly this exists so the client is buildable/testable now, without pretending a real
- * login screen was ever designed. BRD DEC-UI-007 defers the real one to a future BRD pass;
- * replace this component wholesale once that pass lands, rather than growing it in place.
- */
+/** Implements BRD UIR-173–177 (F-UI-001.5). Reached only via `RequireAnonymous` (AppRoutes). */
 export function LoginScreen() {
   const { login } = useAuth();
+  const location = useLocation();
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSignedIn, setHasSignedIn] = useState(false);
+
+  if (hasSignedIn) {
+    const from = (location.state as { from?: string } | null)?.from;
+    return <PostAuthRedirect fromState={from} />;
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,19 +25,18 @@ export function LoginScreen() {
     setIsSubmitting(true);
     try {
       await login(usernameOrEmail, password);
-    } catch (err) {
-      setError(err instanceof ApiError ? (err.problem.detail ?? err.message) : 'Login failed.');
+      setHasSignedIn(true);
+    } catch {
+      // UIR-174: one generic message regardless of which half of the credential was wrong,
+      // so a visitor can't enumerate valid usernames/emails by trial and error.
+      setError("That username/email or password isn't right.");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <div style={{ maxWidth: 320, margin: '80px auto', padding: 24 }}>
-      <h1 style={{ fontSize: '1.25rem', marginBottom: 16 }}>Matchday Manager — Sign In</h1>
-      <p style={{ fontSize: '0.8rem', color: 'var(--ink-dim)', marginBottom: 20 }}>
-        Placeholder sign-in form (Architecture §7.1) — not a designed screen.
-      </p>
+    <AuthLayout title="Sign In">
       <form onSubmit={handleSubmit}>
         <label style={{ display: 'block', marginBottom: 12 }}>
           <span style={{ display: 'block', fontSize: '0.8rem', marginBottom: 4 }}>Username or email</span>
@@ -64,6 +67,10 @@ export function LoginScreen() {
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
-    </div>
+      <p style={{ fontSize: '0.82rem', marginTop: 18, display: 'flex', justifyContent: 'space-between' }}>
+        <Link to="/register">Create an account</Link>
+        <Link to="/forgot-password">Forgot password?</Link>
+      </p>
+    </AuthLayout>
   );
 }

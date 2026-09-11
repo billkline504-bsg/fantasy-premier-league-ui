@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { apiRequest, setAccessToken, setUnauthorizedHandler } from '../api/client';
 import { AuthContext, type AuthUser } from './AuthContext';
 
-// Implements Architecture v1.1 §7 (Authentication & Session Handling). BRD DEC-UI-007 defers
-// designing a real login/registration screen — §7.1 assumes a minimal, unstyled placeholder
-// form instead (screens/auth/LoginScreen), which is what this provider backs. Replace both
-// wholesale once a real BRD/UIR pass covers auth.
+// Implements Architecture v1.3 §7 (Authentication & Session Handling). BRD v1.4 §8.17–8.20 now
+// designs Login, Register, Forgot/Reset Password, and Accept League Invitation in full — this
+// provider backs Login (`login`) and Register (`register`); the other two flows are stateless
+// mutations that don't need session access (see `usePasswordReset.ts`/`useInvitation.ts`).
 
 const REFRESH_TOKEN_STORAGE_KEY = 'matchday-refresh-token';
 
@@ -89,6 +89,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applySession],
   );
 
+  const register = useCallback(
+    async (username: string, email: string, password: string) => {
+      const { data } = await apiRequest<AuthTokenResponse>('/auth/register', {
+        method: 'POST',
+        body: { username, email, password },
+      });
+      applySession(data);
+    },
+    [applySession],
+  );
+
   const logout = useCallback(async () => {
     try {
       await apiRequest('/auth/logout', { method: 'POST' });
@@ -98,8 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession]);
 
   const value = useMemo(
-    () => ({ user, isAuthenticated: user !== null, isRestoringSession, login, logout }),
-    [user, isRestoringSession, login, logout],
+    () => ({ user, isAuthenticated: user !== null, isRestoringSession, login, register, logout }),
+    [user, isRestoringSession, login, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

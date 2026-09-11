@@ -1,9 +1,14 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AppShell } from '../shell/AppShell';
-import { RequireAuth, RequireLeagueAdministrator, RequireSystemAdministrator } from './guards';
-import { useActiveLeague } from '../state/useActiveLeague';
+import { RequireAnonymous, RequireAuth, RequireLeagueAdministrator, RequireSystemAdministrator } from './guards';
+import { PostAuthRedirect } from '../components/PostAuthRedirect';
 
 import { LoginScreen } from '../screens/auth/LoginScreen';
+import { RegisterScreen } from '../screens/auth/RegisterScreen';
+import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
+import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
+import { AcceptInvitationScreen } from '../screens/auth/AcceptInvitationScreen';
+import { NoLeaguesScreen } from '../screens/auth/NoLeaguesScreen';
 import { NoAccessScreen } from '../screens/errors/NoAccessScreen';
 import { NotFoundScreen } from '../screens/errors/NotFoundScreen';
 import { DashboardScreen } from '../screens/dashboard/DashboardScreen';
@@ -23,19 +28,55 @@ import { SecurityScreen } from '../screens/platform/SecurityScreen';
 import { UsernameDisplayPolicyScreen } from '../screens/platform/UsernameDisplayPolicyScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 
-// Implements the route table in Architecture v1.1 §5. Notably: /platform/* carries no
-// :leagueId segment (§5.4, resolves BRD UIR-006a/UIR-151), and every route below the shell
-// requires authentication (§7).
-
-function RootRedirect() {
-  const { activeLeagueId } = useActiveLeague();
-  return <Navigate to={`/leagues/${activeLeagueId}/dashboard`} replace />;
-}
+// Implements the route table in Architecture v1.3 §5. Notably: /platform/* carries no
+// :leagueId segment (§5.4, resolves BRD UIR-006a/UIR-151), every route below the shell
+// requires authentication (§7), and the auth/onboarding routes added in v1.3 (§5.6) sit
+// entirely outside the shell, since an Anonymous Visitor has no league context to show one for.
 
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginScreen />} />
+      <Route
+        path="/login"
+        element={
+          <RequireAnonymous>
+            <LoginScreen />
+          </RequireAnonymous>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <RequireAnonymous>
+            <RegisterScreen />
+          </RequireAnonymous>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <RequireAnonymous>
+            <ForgotPasswordScreen />
+          </RequireAnonymous>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <RequireAnonymous>
+            <ResetPasswordScreen />
+          </RequireAnonymous>
+        }
+      />
+      <Route path="/invite/:token" element={<AcceptInvitationScreen />} />
+      <Route
+        path="/no-leagues"
+        element={
+          <RequireAuth>
+            <NoLeaguesScreen />
+          </RequireAuth>
+        }
+      />
       <Route path="/no-access" element={<NoAccessScreen />} />
 
       <Route
@@ -45,7 +86,7 @@ export function AppRoutes() {
           </RequireAuth>
         }
       >
-        <Route path="/" element={<RootRedirect />} />
+        <Route path="/" element={<PostAuthRedirect />} />
 
         <Route path="/leagues/:leagueId">
           <Route path="dashboard" element={<DashboardScreen />} />
