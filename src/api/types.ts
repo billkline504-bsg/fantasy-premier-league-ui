@@ -29,3 +29,6 @@ export type DraftSelectionPage = components['schemas']['DraftSelectionPage'];
 export type AcquisitionType = components['schemas']['AcquisitionType'];
 export type SquadPlayerView = components['schemas']['SquadPlayerView'];
 export type ReplacementOpportunity = components['schemas']['ReplacementOpportunity'];
+export type LeagueStanding = components['schemas']['LeagueStanding'];
+export type HeadToHeadMatch = components['schemas']['HeadToHeadMatch'];
+export type LeagueMessage = components['schemas']['LeagueMessage'];

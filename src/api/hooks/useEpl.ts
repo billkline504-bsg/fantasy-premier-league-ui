@@ -2,6 +2,7 @@ import { useQueries, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../client';
 import type { Club, ClubStanding, Fixture, Gameweek, Player } from '../types';
 import { useCurrentSeason } from './useLeagueSeason';
+import { useNow } from '../../utils/useNow';
 
 // Query-hook module for the Player & EPL Reference Data controller area (Architecture v1.2
 // §6.3). Backs F-UI-001.3/001.4 (EPL Table & Fixtures).
@@ -51,6 +52,20 @@ export function useEplGameweeks(eplSeasonIdentifier: string | undefined) {
       (await apiRequest<Gameweek[]>('/epl/gameweeks', { query: { eplSeasonIdentifier } })).data,
     enabled: Boolean(eplSeasonIdentifier),
   });
+}
+
+/**
+ * No endpoint says "this is the current Gameweek" either — same underlying gap as
+ * `useCurrentSeason`/`useCurrentDraft` (API Consumption Specification, now its fourth instance),
+ * inferred here as whichever Gameweek's roster-lock deadline hasn't passed yet, falling back to
+ * the last one if the season has none left. Backs Dashboard's scorebug (BRD UIR-035).
+ */
+export function useCurrentGameweek(eplSeasonIdentifier: string | undefined) {
+  const gameweeks = useEplGameweeks(eplSeasonIdentifier);
+  const now = useNow(60_000);
+  const sorted = [...(gameweeks.data ?? [])].sort((a, b) => a.number - b.number);
+  const current = sorted.find((gw) => new Date(gw.rosterLockDeadline).getTime() > now) ?? sorted[sorted.length - 1];
+  return { data: current, isPending: gameweeks.isPending, error: gameweeks.error };
 }
 
 /**
