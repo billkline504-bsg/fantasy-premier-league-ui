@@ -10,11 +10,11 @@ Every requirement, architecture decision, and feature spec behind this client li
 [`docs/aidlc/`](docs/aidlc/README.md), following the same AIDLC pipeline convention as the
 backend repository:
 
-- [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.2)
+- [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.3)
 - [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.2)
 - [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.5)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.6)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -57,10 +57,10 @@ src/
   shell/                — top bar, nav, off-canvas mobile menu
   screens/              — one folder per screen area; Profile (F-UI-001.1/001.2), EPL
                           (F-UI-001.3/001.4), Draft Board (F-UI-002.1/002.2), Squad
-                          (F-UI-002.4), and Dashboard (F-UI-003.1) are fully implemented
-                          against the real API — every other screen is still a scaffold
-                          placeholder (see docs/aidlc/04-user-stories/ for what each should
-                          become)
+                          (F-UI-002.4), Dashboard (F-UI-003.1), and Lineup (F-UI-003.2) are
+                          fully implemented against the real API — every other screen is
+                          still a scaffold placeholder (see docs/aidlc/04-user-stories/ for
+                          what each should become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -70,7 +70,7 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Five screens are fully implemented:
+are real and working (see the test suite). Six screens are fully implemented:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -88,9 +88,15 @@ are real and working (see the test suite). Five screens are fully implemented:
   tiles (League Position and Captain Points rank computed independently from the same
   standings response), the next Head-to-Head fixture, a league news feed, and condensed
   standings, per BRD UIR-035–042.
+- **Lineup** (`src/screens/lineup/`) — the roster-lock banner, a Gameweek EPL fixture strip,
+  the positional-minimums checklist, a pitch view with captain selection, a reserves panel,
+  and roster submission (idempotency-key + ETag concurrency), per BRD UIR-043–054. Building
+  this required **designing a real interaction the mock-up never depicted at all**: adding
+  and removing players between the roster and reserves (new BRD UIR-046a) — without it, the
+  screen couldn't do the one thing it exists for.
 
 Building these against the real API rather than the mock-up surfaced eleven backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.5:
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.6:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
