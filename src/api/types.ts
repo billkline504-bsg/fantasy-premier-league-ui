@@ -37,3 +37,6 @@ export type RosterStatus = components['schemas']['RosterStatus'];
 export type RosterPlayer = components['schemas']['RosterPlayer'];
 export type GameweekRoster = components['schemas']['GameweekRoster'];
 export type SeasonGoalPrediction = components['schemas']['SeasonGoalPrediction'];
+export type AdminActionType = components['schemas']['AdminActionType'];
+export type AdministrativeAction = components['schemas']['AdministrativeAction'];
+export type AdministrativeActionPage = components['schemas']['AdministrativeActionPage'];

@@ -14,7 +14,7 @@ backend repository:
 - [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.2)
 - [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.8)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.9)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -59,10 +59,10 @@ src/
                           (F-UI-001.3/001.4), Draft Board (F-UI-002.1/002.2), Squad
                           (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), Table
                           (F-UI-003.3), Schedule (F-UI-003.4), Season Predictions
-                          (F-UI-003.5), and Messages (F-UI-004.1) are fully implemented
-                          against the real API — every other screen is still a scaffold
-                          placeholder (see docs/aidlc/04-user-stories/ for what each should
-                          become)
+                          (F-UI-003.5), Messages (F-UI-004.1), and Audit Log (F-UI-004.2)
+                          are fully implemented against the real API — every other screen
+                          is still a scaffold placeholder (see docs/aidlc/04-user-stories/
+                          for what each should become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -72,7 +72,7 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Ten screens are fully implemented:
+are real and working (see the test suite). Eleven screens are fully implemented:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -117,9 +117,16 @@ are real and working (see the test suite). Ten screens are fully implemented:
   the permanent-retention disclosure, per BRD UIR-118–124. Needed no new API Consumption
   Specification revision — `LeagueMessage`/`createLeagueMessage` matched what the BRD already
   assumed.
+- **Audit Log** (`src/screens/admin/AuditLogScreen.tsx`, League-Administrator-only) — a
+  filterable (action type, team/league-settings scope, date range), cursor-paginated
+  ("Load more") immutable history of every correction, override, and system-generated
+  eligibility grant, each row expandable into a before/after detail block, per BRD
+  UIR-125–134. The first screen to actually build a "Load more" UI atop this client's cursor
+  pagination contract, and the sharpest example yet of a schema under-specified for what the
+  UI needs — see below.
 
-Building these against the real API rather than the mock-up surfaced fourteen backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.8:
+Building these against the real API rather than the mock-up surfaced sixteen backend
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.9:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
@@ -151,6 +158,12 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
   before then, not by anything the API itself restricts. The prediction record does, however,
   already carry the real lock timestamp and the server-computed final comparison once the
   season ends, so this client only derives the in-progress "goals so far" figure itself.
+- Audit Log entries carry no dedicated summary/target-player/target-team fields — only
+  completely untyped `beforeState`/`afterState` objects and an unenumerated `targetEntityType`
+  string. Rather than guess at per-action-type field names the spec never documents, this
+  client renders a generic before/after key diff as the row summary; the team-scope filter can
+  likewise only offer the current season's teams, since Audit Log itself isn't season-scoped
+  but there's no league-wide team-listing endpoint to build a fuller dropdown from.
 
 Every other screen under `src/screens/` is still a scaffold placeholder.
 `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both carry `TODO`s for wiring
