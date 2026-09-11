@@ -36,3 +36,4 @@ export type LeagueMessage = components['schemas']['LeagueMessage'];
 export type RosterStatus = components['schemas']['RosterStatus'];
 export type RosterPlayer = components['schemas']['RosterPlayer'];
 export type GameweekRoster = components['schemas']['GameweekRoster'];
+export type SeasonGoalPrediction = components['schemas']['SeasonGoalPrediction'];
