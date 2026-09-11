@@ -60,10 +60,11 @@ src/
                           (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), Table
                           (F-UI-003.3), Schedule (F-UI-003.4), Season Predictions
                           (F-UI-003.5), Messages (F-UI-004.1), Audit Log (F-UI-004.2),
-                          Score Corrections (F-UI-004.3), and Security & Abuse Protection
-                          (F-UI-004.4) are fully implemented against the real API — every
-                          other screen is still a scaffold placeholder (see
-                          docs/aidlc/04-user-stories/ for what each should become)
+                          Score Corrections (F-UI-004.3), Security & Abuse Protection
+                          (F-UI-004.4), and Username Display Policy (F-UI-004.5) are fully
+                          implemented against the real API — every other screen is still a
+                          scaffold placeholder (see docs/aidlc/04-user-stories/ for what
+                          each should become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -73,7 +74,7 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Thirteen screens are fully implemented:
+are real and working (see the test suite). Fourteen screens are fully implemented:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -136,6 +137,12 @@ are real and working (see the test suite). Thirteen screens are fully implemente
   posture stat tiles, a CSRF-status panel, a rate-limit configuration table, a recent
   rate-limit-events feed, and a static security checklist citing every governing `BR-###`,
   per BRD UIR-145–151.
+- **Username Display Policy** (`src/screens/platform/UsernameDisplayPolicyScreen.tsx`,
+  System-Administrator-only, platform-level) — the resolved-decision banner, a Shipped-vs-
+  comparison-only policy toggle, and a live preview across three historical record types that
+  updates together as the toggle switches, per BRD UIR-152–156. Entirely static/illustrative
+  content plus local toggle state — no API calls at all, confirmed as expected back in the
+  very first pass of the API Consumption Specification.
 
 Building these against the real API rather than the mock-up surfaced twenty backend
 data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.11:
