@@ -1,0 +1,38 @@
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.desktopNav {
+  margin-left: auto;
+}
+
+.menuTrigger {
+  display: none;
+}
+
+/* Mirrors the mock-up's mobile breakpoint (Architecture §14). */
+@media (max-width: 640px) {
+  .desktopNav {
+    display: none;
+  }
+  .menuTrigger {
+    display: inline-flex;
+    margin-left: auto;
+  }
+}

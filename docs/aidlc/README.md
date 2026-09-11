@@ -2,6 +2,8 @@
 
 This folder holds every artifact produced for the Fantasy EPL League Manager **web UI** ("Matchday Manager") through the same AIDLC (AI-driven documentation/development lifecycle) pipeline convention used by the backend (`fantasy-premier-league`) repository. Each subfolder is one stage of that pipeline, numbered so they sort in the order the pipeline actually runs.
 
+The actual application (a Vite + React + TypeScript project scaffolded per `02-architecture/`) lives at this repository's root, alongside this `docs/` folder — see the root [`README.md`](../../README.md) for how to run it. It currently implements the application shell, routing, auth/session handling, theming, and the shared component patterns described in `02-architecture/`; every screen under its `src/screens/` is still a scaffold placeholder pending the feature work described in `04-user-stories/`.
+
 ## Relationship to the backend repository
 
 This UI is a client of the domain already specified in `fantasy-premier-league`. It does not re-derive business rules — it interprets them into screens, interactions, and presentation-layer requirements. Wherever a UI requirement exists to surface or enforce a rule owned by the backend, this documentation cites that rule's `BR-###` identifier rather than restating it. The backend's own pipeline artifacts are the authoritative source for those rules:
@@ -33,7 +35,7 @@ The backend's `06-database-migrations` and `07-testing-strategy` stages (in the 
 | Folder | Stage | Contents |
 |---|---|---|
 | `01-requirements/` | Requirements | The **Business Requirements Document (BRD)** — the authoritative source of every `UIR-###` UI requirement for this web client, interpreted from the mock-up and cross-referenced against the backend BRD. |
-| `02-architecture/` | Architecture | Frontend stack (React 18 + TypeScript + Vite), application structure, state management, the API client/codegen layer, routing (including the Platform nav section), live-data/polling strategy, and baseline loading/error/empty/pagination patterns. |
+| `02-architecture/` | Architecture | Frontend stack (React + TypeScript + Vite), application structure, state management, the API client/codegen layer, routing (including the Platform nav section), live-data/polling strategy, and baseline loading/error/empty/pagination patterns. |
 | `03-epics-and-backlog/` | Epics & Backlog | The BRD's 17 screens refined into a prioritized, dependency-ordered feature list (`F-UI-###.#`), grouped into a foundational Phase 0 plus the same four build phases the backend uses, each feature citing the `UIR-###` range it implements. |
 | `04-user-stories/` | User Stories / Feature Behavior Specs | Given/When/Then acceptance criteria for every feature in the backlog, grouped into the same four phase subfolders as the backend (`phase-1-foundation/`, `phase-2-draft-and-squad/`, `phase-3-weekly-gameplay/`, `phase-4-operations/`). |
 | `05-api-specification/` | API Specification | The backend's OpenAPI v1.0 spec vendored verbatim, plus this client's **API Consumption Specification** — a feature-to-operation mapping, the pagination and idempotency/concurrency contracts, known error codes needing distinct UI treatment, and the reconciliation findings that drove Architecture v1.1 and BRD v1.2. |
@@ -47,7 +49,7 @@ Every artifact is **append-only**, exactly as in the backend repository: a chang
 | Stage | Latest version |
 |---|---|
 | Requirements (BRD) | v1.2 |
-| Architecture | v1.1 |
+| Architecture | v1.2 |
 | Epic and Feature Backlog | v1.0 |
 | Feature Behavior Specs — Phase 1 | v1.0 |
 | Feature Behavior Specs — Phase 2 | v1.0 |

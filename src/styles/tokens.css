@@ -1,0 +1,71 @@
+/*
+  Design tokens carried over from the mock-up (fantasy-premier-league/mockup/index.html,
+  vendored at docs/mockup/) per Architecture v1.1 §9. Values are copied as-is from the
+  mock-up's :root / [data-theme] / prefers-color-scheme blocks — WCAG contrast review
+  (Architecture §9) is still outstanding before these are treated as final.
+*/
+
+:root {
+  --bg: #f2f5ee;
+  --surface: #ffffff;
+  --surface-2: #eaf0e4;
+  --surface-3: #dfe8d8;
+  --ink: #0d1526;
+  --ink-muted: #4d5a72;
+  --ink-dim: #7c88a0;
+  --line: rgba(13, 21, 38, 0.12);
+  --line-strong: rgba(13, 21, 38, 0.22);
+  --turf: #177a44;
+  --turf-deep: #0d5230;
+  --turf-soft: rgba(23, 122, 68, 0.1);
+  --gold: #a56d16;
+  --gold-ink: #fff8e8;
+  --live: #c22a17;
+  --live-soft: rgba(194, 42, 23, 0.1);
+  --shadow: 0 16px 34px rgba(23, 40, 20, 0.14);
+  --focus: #a56d16;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0a1122;
+    --surface: #101b33;
+    --surface-2: #16233f;
+    --surface-3: #1d2c4d;
+    --ink: #f2f5fb;
+    --ink-muted: #93a0c2;
+    --ink-dim: #5d6a8c;
+    --line: rgba(242, 245, 251, 0.12);
+    --line-strong: rgba(242, 245, 251, 0.22);
+    --turf: #24b562;
+    --turf-deep: #12693a;
+    --turf-soft: rgba(36, 181, 98, 0.14);
+    --gold: #eec15a;
+    --gold-ink: #2b1d02;
+    --live: #ff5a3c;
+    --live-soft: rgba(255, 90, 60, 0.16);
+    --shadow: 0 20px 44px rgba(2, 6, 20, 0.45);
+    --focus: #eec15a;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0a1122;
+  --surface: #101b33;
+  --surface-2: #16233f;
+  --surface-3: #1d2c4d;
+  --ink: #f2f5fb;
+  --ink-muted: #93a0c2;
+  --ink-dim: #5d6a8c;
+  --line: rgba(242, 245, 251, 0.12);
+  --line-strong: rgba(242, 245, 251, 0.22);
+  --turf: #24b562;
+  --turf-deep: #12693a;
+  --turf-soft: rgba(36, 181, 98, 0.14);
+  --gold: #eec15a;
+  --gold-ink: #2b1d02;
+  --live: #ff5a3c;
+  --live-soft: rgba(255, 90, 60, 0.16);
+  --shadow: 0 20px 44px rgba(2, 6, 20, 0.45);
+  --focus: #eec15a;
+}
