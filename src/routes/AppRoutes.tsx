@@ -9,6 +9,7 @@ import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
 import { AcceptInvitationScreen } from '../screens/auth/AcceptInvitationScreen';
 import { NoLeaguesScreen } from '../screens/auth/NoLeaguesScreen';
+import { CreateLeagueScreen } from '../screens/auth/CreateLeagueScreen';
 import { NoAccessScreen } from '../screens/errors/NoAccessScreen';
 import { NotFoundScreen } from '../screens/errors/NotFoundScreen';
 import { DashboardScreen } from '../screens/dashboard/DashboardScreen';
@@ -24,14 +25,19 @@ import { MakeupPicksScreen } from '../screens/draft/MakeupPicksScreen';
 import { MessagesScreen } from '../screens/messages/MessagesScreen';
 import { AuditLogScreen } from '../screens/admin/AuditLogScreen';
 import { ScoreCorrectionsScreen } from '../screens/admin/ScoreCorrectionsScreen';
+import { LeagueSettingsScreen } from '../screens/admin/LeagueSettingsScreen';
+import { InvitationsScreen } from '../screens/admin/InvitationsScreen';
+import { MembersScreen } from '../screens/members/MembersScreen';
 import { SecurityScreen } from '../screens/platform/SecurityScreen';
 import { UsernameDisplayPolicyScreen } from '../screens/platform/UsernameDisplayPolicyScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 
-// Implements the route table in Architecture v1.3 §5. Notably: /platform/* carries no
+// Implements the route table in Architecture v1.4 §5. Notably: /platform/* carries no
 // :leagueId segment (§5.4, resolves BRD UIR-006a/UIR-151), every route below the shell
-// requires authentication (§7), and the auth/onboarding routes added in v1.3 (§5.6) sit
-// entirely outside the shell, since an Anonymous Visitor has no league context to show one for.
+// requires authentication (§7), the auth/onboarding routes added in v1.3 (§5.6) sit entirely
+// outside the shell since an Anonymous Visitor has no league context to show one for, and
+// /leagues/new (added v1.4, §5.7) sits outside the shell for the same reason a League being
+// created doesn't have one yet.
 
 export function AppRoutes() {
   return (
@@ -77,6 +83,14 @@ export function AppRoutes() {
           </RequireAuth>
         }
       />
+      <Route
+        path="/leagues/new"
+        element={
+          <RequireAuth>
+            <CreateLeagueScreen />
+          </RequireAuth>
+        }
+      />
       <Route path="/no-access" element={<NoAccessScreen />} />
 
       <Route
@@ -100,6 +114,7 @@ export function AppRoutes() {
           <Route path="draft" element={<DraftBoardScreen />} />
           <Route path="draft/makeup" element={<MakeupPicksScreen />} />
           <Route path="messages" element={<MessagesScreen />} />
+          <Route path="members" element={<MembersScreen />} />
           <Route
             path="admin/audit"
             element={
@@ -113,6 +128,22 @@ export function AppRoutes() {
             element={
               <RequireLeagueAdministrator>
                 <ScoreCorrectionsScreen />
+              </RequireLeagueAdministrator>
+            }
+          />
+          <Route
+            path="admin/settings"
+            element={
+              <RequireLeagueAdministrator>
+                <LeagueSettingsScreen />
+              </RequireLeagueAdministrator>
+            }
+          />
+          <Route
+            path="admin/invitations"
+            element={
+              <RequireLeagueAdministrator>
+                <InvitationsScreen />
               </RequireLeagueAdministrator>
             }
           />

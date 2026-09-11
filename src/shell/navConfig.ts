@@ -44,10 +44,18 @@ export const ADMIN_NAV_GROUP: NavGroupConfig = {
   items: [
     { label: 'Audit Log', path: 'admin/audit' },
     { label: 'Score Corrections', path: 'admin/corrections' },
+    { label: 'Settings', path: 'admin/settings' },
+    { label: 'Invitations', path: 'admin/invitations' },
   ],
 };
 
-export const TRAILING_NAV_ITEMS: NavItem[] = [{ label: 'Messages', path: 'messages' }];
+// Members (added v1.4, BRD UIR-208) is viewable by every member, not just the Administrator —
+// it sits alongside Messages rather than inside ADMIN_NAV_GROUP for that reason (Architecture
+// v1.4 §5.7).
+export const TRAILING_NAV_ITEMS: NavItem[] = [
+  { label: 'Messages', path: 'messages' },
+  { label: 'Members', path: 'members' },
+];
 
 // League-independent, System Administrator only (BRD UIR-006a). Absolute paths — not nested
 // under /leagues/:leagueId (Architecture §5.4).

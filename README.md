@@ -10,11 +10,11 @@ Every requirement, architecture decision, and feature spec behind this client li
 [`docs/aidlc/`](docs/aidlc/README.md), following the same AIDLC pipeline convention as the
 backend repository:
 
-- [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.4)
-- [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.3)
-- [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog (latest: v1.1)
+- [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.5)
+- [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.4)
+- [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog (latest: v1.2)
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.13)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.14)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -49,7 +49,7 @@ backend API (see the `fantasy-premier-league` repository's README for how to run
 
 ## Project layout
 
-Mirrors Architecture v1.3 §3:
+Mirrors Architecture v1.4 §3:
 
 ```
 src/
@@ -65,7 +65,11 @@ src/
                           Protection (F-UI-004.4), Username Display Policy (F-UI-004.5),
                           and History (F-UI-004.6). screens/auth/ (added past the mock-up's
                           own scope, BRD v1.4 §8.17–8.20) holds Login, Register, Forgot/
-                          Reset Password, and Accept League Invitation (F-UI-001.5–001.8)
+                          Reset Password, Accept League Invitation, and (BRD v1.5 §8.21)
+                          League Creation (F-UI-001.5–001.9). screens/admin/ additionally
+                          holds League Settings and Invitations (F-UI-001.10–001.11, BRD
+                          v1.5 §8.22–8.23); screens/members/ holds League Members
+                          (F-UI-001.12, BRD v1.5 §8.24)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -76,8 +80,9 @@ src/
 
 The application shell, routing, auth session handling, theming, and shared component patterns
 are real and working (see the test suite). **All 17 screens from the mock-up are fully
-implemented** against the real API, plus four more (Login, Register, Forgot/Reset Password,
-Accept League Invitation) that BRD v1.4 designed beyond the mock-up's own scope:
+implemented** against the real API, plus eight more that BRD v1.4/v1.5 designed beyond the
+mock-up's own scope: Login, Register, Forgot/Reset Password, Accept League Invitation, League
+Creation, League Settings, Invitations, and League Members:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -178,8 +183,34 @@ client with no mock-up to interpret at all:
   (there's no way to preview an invitation before accepting), and redirects to that league's
   Dashboard on success, per BRD UIR-187–190.
 
-Building these against the real API rather than the mock-up surfaced twenty-four backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.13:
+**Beyond that, BRD v1.5 §8.21–8.24 resolves the other half of the originally-deferred scope**
+(league-creation/administration-setup) with four more screens — again with no mock-up to
+interpret:
+
+- **League Creation** (`src/screens/auth/CreateLeagueScreen.tsx`) — a combined League + first-
+  Season form (no picker for the EPL season identifier — it's typed by hand, since there's no
+  endpoint to discover valid values), a confirmation that the creator is now the League's sole
+  Administrator, and a redirect to the new League's Dashboard. Reachable from the "no leagues
+  yet" empty state and from a new "+ Create a League" option in the league switcher, per BRD
+  UIR-191–195.
+- **League Settings** (`src/screens/admin/LeagueSettingsScreen.tsx`, League-Administrator-only)
+  — League Details editing (name/description/status) plus a two-tier configuration editor
+  (League Defaults vs. this Season's Configuration) covering every `BR-291` parameter, not just
+  the six History shows read-only; a Season field already past its lock point renders using
+  the same locked-field treatment as elsewhere in this client, per BRD UIR-196–201.
+- **Invitations** (`src/screens/admin/InvitationsScreen.tsx`, League-Administrator-only) — a
+  send form (destination + channel), the League's current expiration window stated up front,
+  and a pending/expired/revoked list with a Revoke action for Pending invitations only — never
+  showing an invitation link or token, since the backend's own `Invitation` record has no such
+  field, per BRD UIR-202–207.
+- **League Members** (`src/screens/members/MembersScreen.tsx`, viewable by every member) — a
+  member list with Remove (Administrator-only, never on their own row) and Leave League (every
+  member's own row) actions; a sole Administrator's Leave attempt states plainly that the
+  platform has no way yet to transfer that role, rather than failing with a generic error, per
+  BRD UIR-208–213.
+
+Building these against the real API rather than the mock-up surfaced twenty-eight backend
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.14:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
@@ -240,11 +271,22 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
   directly to decide whether a newly-signed-in user has zero leagues (BRD UIR-177) — this
   bypasses `ActiveLeagueContext`'s own still-placeholder league list (see below) rather than
   waiting on that separately-tracked rewiring.
+- **The backend's own `leaveLeague` error references "transferring administration," but no
+  endpoint or rule anywhere in the API actually implements a transfer mechanism.** A sole
+  League Administrator who tries to leave gets a plain, honest statement of that exact
+  limitation on the Members screen, not a fabricated transfer control — recorded as a new open
+  BRD gap (§12 item 13) rather than designed around, since there's genuinely nothing to design
+  against.
+- `Invitation` records carry no `channel` field — only the send-side request does — so the
+  Invitations list has no Channel column; League Settings deliberately excludes
+  `tieBreakRulesetVersion` from its editable fields, since it's an internal implementation
+  identifier, not a business-facing policy value like every other configurable parameter.
 
-Every screen from the mock-up, plus the four auth/onboarding screens BRD v1.4 added beyond it,
-are now implemented — nothing under `src/screens/` remains a scaffold placeholder.
-`src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both still carry `TODO`s for
-wiring up real league-membership/admin-role data once it's available — the auth screens work
-around this narrowly (calling `listMyLeagues` directly for post-login landing) rather than
-fixing it, so read those `TODO`s before assuming any authorization check or league list in this
-client is complete; the backend's own authorization remains the actual authority regardless.
+Every screen from the mock-up, plus the eight auth/onboarding and league-administration
+screens BRD v1.4/v1.5 added beyond it, are now implemented — nothing under `src/screens/`
+remains a scaffold placeholder. `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx`
+both still carry `TODO`s for wiring up real league-membership/admin-role data once it's
+available — the auth/league-admin screens work around this narrowly (calling `listMyLeagues`
+directly for post-login landing) rather than fixing it, so read those `TODO`s before assuming
+any authorization check or league list in this client is complete; the backend's own
+authorization remains the actual authority regardless.

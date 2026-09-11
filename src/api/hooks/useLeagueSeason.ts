@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../client';
-import type { FantasyTeam, League, LeagueConfiguration, LeagueMembership, Season, SeasonConfiguration } from '../types';
+import type { FantasyTeam, League, LeagueConfiguration, LeagueMembership, LeagueStatus, Season, SeasonConfiguration } from '../types';
 import { useCurrentUser } from './useIdentity';
 
 // Query-hook module for the LeagueSeason controller area (Architecture v1.2 §6.3). Backs
@@ -10,6 +10,49 @@ export function useMyLeagues() {
   return useQuery({
     queryKey: ['leagues'] as const,
     queryFn: async () => (await apiRequest<League[]>('/leagues')).data,
+  });
+}
+
+/** Backs F-UI-001.9 (League Creation, BRD §8.21) — no `x-authorization` note on `createLeague` (BR-023: any authenticated user). */
+export function useCreateLeague() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { name: string; description?: string }) =>
+      (await apiRequest<League>('/leagues', { method: 'POST', body })).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leagues'] }),
+  });
+}
+
+/**
+ * Backs F-UI-001.9's combined League+Season creation step (BRD UIR-191). Takes `leagueId` as a
+ * mutation variable, not a hook parameter — League Creation only learns the new League's id
+ * from `useCreateLeague`'s own result, one async step earlier in the same handler, so a
+ * hook-level `leagueId` argument would close over a stale value from that render.
+ */
+export function useCreateSeason() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ leagueId, eplSeasonIdentifier, startDate }: { leagueId: string; eplSeasonIdentifier: string; startDate: string }) =>
+      (await apiRequest<Season>(`/leagues/${leagueId}/seasons`, { method: 'POST', body: { eplSeasonIdentifier, startDate } })).data,
+    onSuccess: (season) => queryClient.invalidateQueries({ queryKey: ['leagues', season.leagueId, 'seasons'] }),
+  });
+}
+
+export function useLeague(leagueId: string) {
+  return useQuery({
+    queryKey: ['leagues', leagueId] as const,
+    queryFn: async () => (await apiRequest<League>(`/leagues/${leagueId}`)).data,
+    enabled: Boolean(leagueId),
+  });
+}
+
+/** Backs F-UI-001.10 (League Settings, BRD UIR-196) — League name/description/status editing. */
+export function useUpdateLeague(leagueId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { name?: string; description?: string; status?: LeagueStatus }) =>
+      (await apiRequest<League>(`/leagues/${leagueId}`, { method: 'PUT', body })).data,
+    onSuccess: (league) => queryClient.setQueryData(['leagues', leagueId], league),
   });
 }
 
@@ -125,6 +168,59 @@ export function useLeagueConfiguration(leagueId: string) {
     queryFn: async () =>
       (await apiRequest<LeagueConfiguration>(`/leagues/${leagueId}/configuration`)).data,
     enabled: Boolean(leagueId),
+  });
+}
+
+/**
+ * Backs F-UI-001.10's "League Defaults" section (BRD UIR-197). Takes the *full*
+ * `LeagueConfiguration` object (Architecture v1.4 ADR-015) — there is no partial-patch shape.
+ */
+export function useUpdateLeagueConfiguration(leagueId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (configuration: LeagueConfiguration) =>
+      (await apiRequest<LeagueConfiguration>(`/leagues/${leagueId}/configuration`, { method: 'PUT', body: configuration })).data,
+    onSuccess: (configuration) => queryClient.setQueryData(['leagues', leagueId, 'configuration'], configuration),
+  });
+}
+
+/**
+ * Backs F-UI-001.10's "This Season's Configuration" section (BRD UIR-197). Also takes the full
+ * `SeasonConfiguration` object; a `409` means one or more submitted fields are already locked
+ * for this Season (BR-293) — the caller is expected to have already rendered those fields
+ * read-only (UIR-199) using the same `lockedFields` array, so a real 409 here would indicate a
+ * stale read, not a normal user action.
+ */
+export function useUpdateSeasonConfiguration(leagueId: string, seasonId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (configuration: SeasonConfiguration) =>
+      (
+        await apiRequest<SeasonConfiguration>(`/leagues/${leagueId}/seasons/${seasonId}/configuration`, {
+          method: 'PUT',
+          body: configuration,
+        })
+      ).data,
+    onSuccess: (configuration) =>
+      queryClient.setQueryData(['leagues', leagueId, 'seasons', seasonId, 'configuration'], configuration),
+  });
+}
+
+/**
+ * Backs F-UI-001.12 (League Members, BRD §8.24) — doubles as both "a member leaves" and "an
+ * Administrator removes another member" (`x-authorization`: caller owns `membershipId`, or is
+ * the League Administrator). A `409` on the sole Administrator's own membership means the
+ * backend's transfer-administration precondition (BR-025/BR-283) — which no endpoint
+ * implements (BRD §12 item 13) — so this is surfaced as a plain, specific message (UIR-211),
+ * not a generic error.
+ */
+export function useLeaveLeague(leagueId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (membershipId: string) => {
+      await apiRequest<void>(`/leagues/${leagueId}/memberships/${membershipId}/leave`, { method: 'POST' });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: membershipsQueryKey(leagueId) }),
   });
 }
 
