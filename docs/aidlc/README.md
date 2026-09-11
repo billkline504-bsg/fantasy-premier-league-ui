@@ -2,7 +2,7 @@
 
 This folder holds every artifact produced for the Fantasy EPL League Manager **web UI** ("Matchday Manager") through the same AIDLC (AI-driven documentation/development lifecycle) pipeline convention used by the backend (`fantasy-premier-league`) repository. Each subfolder is one stage of that pipeline, numbered so they sort in the order the pipeline actually runs.
 
-The actual application (a Vite + React + TypeScript project scaffolded per `02-architecture/`) lives at this repository's root, alongside this `docs/` folder — see the root [`README.md`](../../README.md) for how to run it. It currently implements the application shell, routing, auth/session handling, theming, and the shared component patterns described in `02-architecture/`; every screen under its `src/screens/` is still a scaffold placeholder pending the feature work described in `04-user-stories/`.
+The actual application (a Vite + React + TypeScript project scaffolded per `02-architecture/`) lives at this repository's root, alongside this `docs/` folder — see the root [`README.md`](../../README.md) for how to run it. It implements the application shell, routing, auth/session handling, theming, and the shared component patterns described in `02-architecture/`, plus a fully working **Profile** screen (F-UI-001.1/001.2, against the real API — see `05-api-specification/`'s v1.1 for two backend data-availability gaps that surfaced while building it). Every other screen under `src/screens/` is still a scaffold placeholder pending the feature work described in `04-user-stories/`.
 
 ## Relationship to the backend repository
 
@@ -55,7 +55,7 @@ Every artifact is **append-only**, exactly as in the backend repository: a chang
 | Feature Behavior Specs — Phase 2 | v1.0 |
 | Feature Behavior Specs — Phase 3 | v1.0 |
 | Feature Behavior Specs — Phase 4 | v1.0 |
-| API Consumption Specification | v1.0 |
+| API Consumption Specification | v1.1 |
 
 ## Not yet produced
 

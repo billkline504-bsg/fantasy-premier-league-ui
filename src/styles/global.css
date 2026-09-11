@@ -48,3 +48,36 @@ textarea {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/*
+  Small set of cross-cutting utility classes used by more than one screen — ported from the
+  mock-up's component classes. Screen-specific styling belongs in that screen's own CSS Module,
+  not appended here; only add to this file when a pattern is genuinely shared.
+*/
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.scope-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+.scope-badge.league {
+  color: var(--turf);
+  background: var(--turf-soft);
+  border-color: rgba(36, 181, 98, 0.35);
+}

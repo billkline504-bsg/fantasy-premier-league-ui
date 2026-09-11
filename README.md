@@ -11,10 +11,10 @@ Every requirement, architecture decision, and feature spec behind this client li
 backend repository:
 
 - [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.2)
-- [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.1)
+- [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.2)
 - [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.1)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -55,8 +55,10 @@ Mirrors Architecture v1.1 §3:
 src/
   app.tsx / main.tsx    — root component, providers, entry point
   shell/                — top bar, nav, off-canvas mobile menu
-  screens/              — one folder per screen area; each screen is currently a scaffold
-                          placeholder (see docs/aidlc/04-user-stories/ for what it should become)
+  screens/              — one folder per screen area; Profile (F-UI-001.1/001.2) is fully
+                          implemented against the real API — every other screen is still a
+                          scaffold placeholder (see docs/aidlc/04-user-stories/ for what each
+                          should become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -65,9 +67,15 @@ src/
 
 ## Current status
 
-This is a scaffold: the application shell, routing, auth session handling, theming, and shared
-component patterns are real and working (see the test suite), but every screen under
-`src/screens/` is a placeholder pending actual feature implementation. `src/state/ActiveLeagueProvider.tsx`
-and `src/routes/guards.tsx` both carry `TODO`s for wiring up real league-membership/admin-role
-data once it's available — read those before assuming any authorization check in this client is
+The application shell, routing, auth session handling, theming, and shared component patterns
+are real and working (see the test suite). **Profile is the first fully implemented screen**
+(`src/screens/profile/`) — System Profile (username, default icon, theme) and League Season
+Profile (per-league icon override, notification preferences) both against the real API, per BRD
+UIR-157–172. Implementing it surfaced two backend data-availability gaps, recorded in API
+Consumption Specification v1.1 (§2.3a/§2.3b): there's no phone-number field on the user profile
+despite the BRD depicting one, and the profile-icon catalog is an image-asset reference with no
+stated hosting convention (rendered as-is pending confirmation). Every other screen under
+`src/screens/` is still a scaffold placeholder. `src/state/ActiveLeagueProvider.tsx` and
+`src/routes/guards.tsx` both carry `TODO`s for wiring up real league-membership/admin-role data
+once it's available — read those before assuming any authorization check in this client is
 complete; the backend's own authorization remains the actual authority regardless.
