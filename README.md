@@ -14,7 +14,7 @@ backend repository:
 - [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.2)
 - [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.10)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.11)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -59,10 +59,11 @@ src/
                           (F-UI-001.3/001.4), Draft Board (F-UI-002.1/002.2), Squad
                           (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), Table
                           (F-UI-003.3), Schedule (F-UI-003.4), Season Predictions
-                          (F-UI-003.5), Messages (F-UI-004.1), Audit Log (F-UI-004.2), and
-                          Score Corrections (F-UI-004.3) are fully implemented against the
-                          real API — every other screen is still a scaffold placeholder
-                          (see docs/aidlc/04-user-stories/ for what each should become)
+                          (F-UI-003.5), Messages (F-UI-004.1), Audit Log (F-UI-004.2),
+                          Score Corrections (F-UI-004.3), and Security & Abuse Protection
+                          (F-UI-004.4) are fully implemented against the real API — every
+                          other screen is still a scaffold placeholder (see
+                          docs/aidlc/04-user-stories/ for what each should become)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -72,7 +73,7 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Twelve screens are fully implemented:
+are real and working (see the test suite). Thirteen screens are fully implemented:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -130,9 +131,14 @@ are real and working (see the test suite). Twelve screens are fully implemented:
   Active/Recently-Undone override tables reconstructed from Audit Log entries, per BRD
   UIR-135–144. **This screen surfaced the single most consequential finding in the whole
   project** — see below.
+- **Security & Abuse Protection** (`src/screens/platform/SecurityScreen.tsx`,
+  System-Administrator-only, platform-level — reachable with no active league at all) — auth-
+  posture stat tiles, a CSRF-status panel, a rate-limit configuration table, a recent
+  rate-limit-events feed, and a static security checklist citing every governing `BR-###`,
+  per BRD UIR-145–151.
 
-Building these against the real API rather than the mock-up surfaced eighteen backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.10:
+Building these against the real API rather than the mock-up surfaced twenty backend
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.11:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
@@ -177,6 +183,10 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
   `playerPerformanceId` an administrator must already have from elsewhere. Its Active/
   Recently-Undone tables are reconstructed from Audit Log's own override-related entries
   instead of any dedicated listing endpoint.
+- Neither `RateLimitRule` nor `SecurityEvent` carries every field the BRD's Security screen
+  depicts — no scope/active-status per rate limit, and no Login/Password-Reset/General-API
+  category per event. Rather than guess either from an endpoint-path string, both are shown
+  with only their real fields, explicitly marked where data isn't exposed.
 
 Every other screen under `src/screens/` is still a scaffold placeholder.
 `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both carry `TODO`s for wiring

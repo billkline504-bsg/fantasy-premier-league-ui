@@ -41,3 +41,7 @@ export type AdminActionType = components['schemas']['AdminActionType'];
 export type AdministrativeAction = components['schemas']['AdministrativeAction'];
 export type AdministrativeActionPage = components['schemas']['AdministrativeActionPage'];
 export type ScoreOverride = components['schemas']['ScoreOverride'];
+export type RateLimitRule = components['schemas']['RateLimitRule'];
+export type SecurityEvent = components['schemas']['SecurityEvent'];
+export type SecurityEventPage = components['schemas']['SecurityEventPage'];
+export type CsrfStatus = components['schemas']['CsrfStatus'];
