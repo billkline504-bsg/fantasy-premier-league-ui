@@ -45,3 +45,5 @@ export type RateLimitRule = components['schemas']['RateLimitRule'];
 export type SecurityEvent = components['schemas']['SecurityEvent'];
 export type SecurityEventPage = components['schemas']['SecurityEventPage'];
 export type CsrfStatus = components['schemas']['CsrfStatus'];
+export type SeasonConfiguration = components['schemas']['SeasonConfiguration'];
+export type GameweekScore = components['schemas']['GameweekScore'];

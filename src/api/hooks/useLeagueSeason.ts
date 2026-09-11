@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../client';
-import type { FantasyTeam, League, LeagueConfiguration, LeagueMembership, Season } from '../types';
+import type { FantasyTeam, League, LeagueConfiguration, LeagueMembership, Season, SeasonConfiguration } from '../types';
 import { useCurrentUser } from './useIdentity';
 
 // Query-hook module for the LeagueSeason controller area (Architecture v1.2 §6.3). Backs
@@ -102,6 +102,21 @@ export function useMyFantasyTeam(leagueId: string, seasonId: string | undefined)
     isPending: membership.isPending || fantasyTeams.isPending,
     error: membership.error ?? fantasyTeams.error,
   };
+}
+
+/**
+ * Backs History's config-snapshot (BRD UIR-093, BR-296): a Season keeps the configuration
+ * value that actually applied to it, which can differ from the League's present-day
+ * `LeagueConfiguration` if an administrator has changed a default since — comparing this
+ * against `useLeagueConfiguration`'s current value is how History flags a changed field.
+ */
+export function useSeasonConfiguration(leagueId: string, seasonId: string | undefined) {
+  return useQuery({
+    queryKey: ['leagues', leagueId, 'seasons', seasonId, 'configuration'] as const,
+    queryFn: async () =>
+      (await apiRequest<SeasonConfiguration>(`/leagues/${leagueId}/seasons/${seasonId}/configuration`)).data,
+    enabled: Boolean(leagueId) && Boolean(seasonId),
+  });
 }
 
 export function useLeagueConfiguration(leagueId: string) {

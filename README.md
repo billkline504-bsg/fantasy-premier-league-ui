@@ -14,7 +14,7 @@ backend repository:
 - [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.2)
 - [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.11)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.12)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -55,16 +55,15 @@ Mirrors Architecture v1.1 §3:
 src/
   app.tsx / main.tsx    — root component, providers, entry point
   shell/                — top bar, nav, off-canvas mobile menu
-  screens/              — one folder per screen area; Profile (F-UI-001.1/001.2), EPL
-                          (F-UI-001.3/001.4), Draft Board (F-UI-002.1/002.2), Squad
-                          (F-UI-002.4), Dashboard (F-UI-003.1), Lineup (F-UI-003.2), Table
-                          (F-UI-003.3), Schedule (F-UI-003.4), Season Predictions
-                          (F-UI-003.5), Messages (F-UI-004.1), Audit Log (F-UI-004.2),
-                          Score Corrections (F-UI-004.3), Security & Abuse Protection
-                          (F-UI-004.4), and Username Display Policy (F-UI-004.5) are fully
-                          implemented against the real API — every other screen is still a
-                          scaffold placeholder (see docs/aidlc/04-user-stories/ for what
-                          each should become)
+  screens/              — one folder per screen area. Every one of the 17 screens the
+                          mock-up depicts is fully implemented against the real API: Profile
+                          (F-UI-001.1/001.2), EPL (F-UI-001.3/001.4), Draft Board
+                          (F-UI-002.1/002.2), Squad (F-UI-002.4), Dashboard (F-UI-003.1),
+                          Lineup (F-UI-003.2), Table (F-UI-003.3), Schedule (F-UI-003.4),
+                          Season Predictions (F-UI-003.5), Messages (F-UI-004.1), Audit Log
+                          (F-UI-004.2), Score Corrections (F-UI-004.3), Security & Abuse
+                          Protection (F-UI-004.4), Username Display Policy (F-UI-004.5),
+                          and History (F-UI-004.6)
   components/           — shared, screen-agnostic components (CountdownClock, Tabs, etc.)
   api/                  — generated OpenAPI types + the typed fetch client wrapper
   state/                — Theme / ActiveLeague / Auth contexts (Architecture §4.2)
@@ -74,7 +73,8 @@ src/
 ## Current status
 
 The application shell, routing, auth session handling, theming, and shared component patterns
-are real and working (see the test suite). Fourteen screens are fully implemented:
+are real and working (see the test suite). **All 17 screens from the mock-up are fully
+implemented** against the real API:
 
 - **Profile** (`src/screens/profile/`) — System Profile (username, default icon, theme) and
   League Season Profile (per-league icon override, notification preferences), per BRD
@@ -143,9 +143,17 @@ are real and working (see the test suite). Fourteen screens are fully implemente
   updates together as the toggle switches, per BRD UIR-152–156. Entirely static/illustrative
   content plus local toggle state — no API calls at all, confirmed as expected back in the
   very first pass of the API Consumption Specification.
+- **History** (`src/screens/history/`) — season tabs (completed seasons selectable, the
+  in-progress season disabled with a tooltip), and a nested Final Standings / Draft History /
+  Gameweek Roster tab set: a champion banner and league-configuration snapshot (any field that
+  differs from the league's current setting is flagged), a team-selectable ordered list of
+  every Initial Draft pick, and a team-and-Gameweek-selectable full roster view with match
+  result, fantasy points, and captain — with an explanatory placeholder wherever this
+  environment's seed data doesn't illustrate a given team/Gameweek combination, per BRD
+  UIR-089–098. This was the last screen in the mock-up's 17-screen scope.
 
-Building these against the real API rather than the mock-up surfaced twenty backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.11:
+Building these against the real API rather than the mock-up surfaced twenty-two backend
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.12:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
@@ -194,9 +202,14 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
   depicts — no scope/active-status per rate limit, and no Login/Password-Reset/General-API
   category per event. Rather than guess either from an endpoint-path string, both are shown
   with only their real fields, explicitly marked where data isn't exposed.
+- There is no endpoint to check any user's retirement status except the caller's own, so
+  History cannot show a "Retired" tag next to a manager's historical record even though the
+  BRD calls for one — the identity-safety half of that same requirement (never confusing a
+  retired manager with a later user reusing their username) already holds regardless, since
+  every join in this client is by internal id, never by username.
 
-Every other screen under `src/screens/` is still a scaffold placeholder.
-`src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both carry `TODO`s for wiring
-up real league-membership/admin-role data once it's available — read those before assuming any
-authorization check in this client is complete; the backend's own authorization remains the
-actual authority regardless.
+Every screen from the mock-up is now implemented — nothing under `src/screens/` remains a
+scaffold placeholder. `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx` both
+still carry `TODO`s for wiring up real league-membership/admin-role data once it's available —
+read those before assuming any authorization check in this client is complete; the backend's
+own authorization remains the actual authority regardless.

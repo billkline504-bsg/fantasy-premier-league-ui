@@ -67,11 +67,19 @@ export function useDraftPlayerPool(draftId: string | undefined, filter: DraftPoo
   });
 }
 
-export function useDraftSelections(draftId: string | undefined) {
+/**
+ * `listDraftSelections` isn't filterable by team server-side — History's Draft History view
+ * (BRD UIR-094/095) fetches the whole draft's picks and filters/sorts client-side, so it needs
+ * a fuller single page than Draft Board's Recent Picks panel does. A season's full squad size
+ * across every team (e.g. 25 × a double-digit team count) could in principle exceed even the
+ * documented 200-row max in a very large league — no "Load more" is built here, matching the
+ * same scope choice already made for Score Corrections/Security's single-page consumptions.
+ */
+export function useDraftSelections(draftId: string | undefined, pageSize = 50) {
   return useQuery({
-    queryKey: ['drafts', draftId, 'selections'] as const,
+    queryKey: ['drafts', draftId, 'selections', pageSize] as const,
     queryFn: async () =>
-      (await apiRequest<DraftSelectionPage>(`/drafts/${draftId}/selections`, { query: { limit: 50 } })).data,
+      (await apiRequest<DraftSelectionPage>(`/drafts/${draftId}/selections`, { query: { limit: pageSize } })).data,
     enabled: Boolean(draftId),
   });
 }

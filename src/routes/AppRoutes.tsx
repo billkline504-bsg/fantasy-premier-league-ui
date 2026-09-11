@@ -13,7 +13,7 @@ import { TableScreen } from '../screens/league/TableScreen';
 import { ScheduleScreen } from '../screens/league/ScheduleScreen';
 import { EplScreen } from '../screens/league/EplScreen';
 import { PredictionsScreen } from '../screens/league/PredictionsScreen';
-import { HistoryScreen } from '../screens/league/HistoryScreen';
+import { HistoryScreen } from '../screens/history/HistoryScreen';
 import { DraftBoardScreen } from '../screens/draft/DraftBoardScreen';
 import { MakeupPicksScreen } from '../screens/draft/MakeupPicksScreen';
 import { MessagesScreen } from '../screens/messages/MessagesScreen';
