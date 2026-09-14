@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DraftBoardScreen } from './DraftBoardScreen';
 import { ActiveLeagueProvider } from '../../state/ActiveLeagueProvider';
 
-// Exercises F-UI-002.1/002.2 (BRD UIR-099-109). The active league in ActiveLeagueProvider's
-// placeholder data is 'the-gaffers-league'.
+// Exercises F-UI-002.1/002.2 (BRD UIR-099-109, UIR-214-218). The active league in
+// ActiveLeagueProvider's placeholder data is 'the-gaffers-league'.
 
 const LEAGUE_ID = 'the-gaffers-league';
 
@@ -18,6 +18,13 @@ const CURRENT_USER = {
   defaultIconId: 'icon-1',
   isSystemAdministrator: false,
   createdAt: '2026-01-01T00:00:00Z',
+};
+
+const NON_ADMIN_USER = {
+  ...CURRENT_USER,
+  userId: 'u2',
+  username: 'cornerkick_kev',
+  email: 'kev@example.com',
 };
 
 const SEASON = {
@@ -44,12 +51,14 @@ const FANTASY_TEAMS = [
 // Round 2 is even -> reversed order [ft3, ft2, ft1] = [sian88, cornerkick_kev, wkline];
 // currentPickIndex 1 -> cornerkick_kev on the clock, not the test's own user (wkline).
 let currentPickIndex = 1;
+let draftStatus: 'InProgress' | 'Paused' = 'InProgress';
+let currentUser = CURRENT_USER;
 function draft() {
   return {
     draftId: 'd1',
     seasonId: 's1',
     draftType: 'Initial',
-    status: 'InProgress',
+    status: draftStatus,
     draftOrder: ['ft1', 'ft2', 'ft3'],
     currentRound: 2,
     currentPickIndex,
@@ -117,6 +126,8 @@ function renderDraftBoard() {
 describe('DraftBoardScreen', () => {
   beforeEach(() => {
     currentPickIndex = 1;
+    draftStatus = 'InProgress';
+    currentUser = CURRENT_USER;
     lastPickRequest = null;
 
     vi.stubGlobal(
@@ -126,7 +137,7 @@ describe('DraftBoardScreen', () => {
         const path = decodeURIComponent(url.pathname.replace(/^\/api\/v1/, ''));
         const method = init?.method ?? 'GET';
 
-        if (path === '/users/me') return jsonResponse(CURRENT_USER);
+        if (path === '/users/me') return jsonResponse(currentUser);
         if (path === `/leagues/${LEAGUE_ID}/seasons`) return jsonResponse([SEASON]);
         if (path === `/leagues/${LEAGUE_ID}/seasons/s1/drafts`) return jsonResponse([draft()]);
         if (path === '/drafts/d1') return jsonResponse(draft());
@@ -146,6 +157,14 @@ describe('DraftBoardScreen', () => {
           return jsonResponse(
             { draftSelectionId: 'sel-new', draftId: 'd1', fantasyTeamId: 'ft2', playerId: 'p1', round: 2, pickNumber: 4, selectedAt: new Date().toISOString(), isMakeupPick: false },
           );
+        }
+        if (path === '/drafts/d1/pause' && method === 'POST') {
+          draftStatus = 'Paused';
+          return jsonResponse(draft());
+        }
+        if (path === '/drafts/d1/resume' && method === 'POST') {
+          draftStatus = 'InProgress';
+          return jsonResponse(draft());
         }
 
         throw new Error(`Unhandled request: ${method} ${path}`);
@@ -215,5 +234,65 @@ describe('DraftBoardScreen', () => {
 
     expect(await screen.findByText('Alexander Isak')).toBeInTheDocument();
     expect(screen.queryByText('Bruno Fernandes')).not.toBeInTheDocument();
+  });
+
+  it('shows the paused-state banner when the draft is Paused (UIR-214)', async () => {
+    draftStatus = 'Paused';
+    renderDraftBoard();
+    expect(
+      await screen.findByText(/this draft is paused\. no picks can be made until a league administrator resumes it/i),
+    ).toBeInTheDocument();
+  });
+
+  it('disables the Draft action for everyone, including the on-clock team, while Paused (UIR-215)', async () => {
+    draftStatus = 'Paused';
+    currentPickIndex = 2; // reversed order index 2 = ft1 = wkline (this test's user) -- would be my turn if not paused
+    renderDraftBoard();
+
+    const draftButtons = await screen.findAllByRole('button', { name: 'Draft' });
+    expect(draftButtons.length).toBeGreaterThan(0);
+    draftButtons.forEach((btn) => expect(btn).toBeDisabled());
+  });
+
+  it('replaces the live countdown with a static "Paused" indicator, not a frozen or running value (UIR-216)', async () => {
+    draftStatus = 'Paused';
+    renderDraftBoard();
+
+    expect(await screen.findByText('Paused', { selector: 'div' })).toBeInTheDocument();
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+  });
+
+  it('shows a League Administrator a Pause Draft control while InProgress, and lets them pause it (UIR-217)', async () => {
+    const user = userEvent.setup();
+    renderDraftBoard();
+
+    const pauseButton = await screen.findByRole('button', { name: 'Pause Draft' });
+    expect(screen.queryByRole('button', { name: 'Resume Draft' })).not.toBeInTheDocument();
+
+    await user.click(pauseButton);
+
+    expect(await screen.findByRole('button', { name: 'Resume Draft' })).toBeInTheDocument();
+    expect(await screen.findByText(/this draft is paused/i)).toBeInTheDocument();
+  });
+
+  it('shows a League Administrator a Resume Draft control while Paused, and lets them resume it (UIR-217)', async () => {
+    draftStatus = 'Paused';
+    const user = userEvent.setup();
+    renderDraftBoard();
+
+    const resumeButton = await screen.findByRole('button', { name: 'Resume Draft' });
+    await user.click(resumeButton);
+
+    expect(await screen.findByRole('button', { name: 'Pause Draft' })).toBeInTheDocument();
+    expect(screen.queryByText(/this draft is paused/i)).not.toBeInTheDocument();
+  });
+
+  it('shows no Pause/Resume control to a non-Administrator (UIR-217)', async () => {
+    currentUser = NON_ADMIN_USER;
+    renderDraftBoard();
+
+    await screen.findByText('● On the clock');
+    expect(screen.queryByRole('button', { name: 'Pause Draft' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Resume Draft' })).not.toBeInTheDocument();
   });
 });

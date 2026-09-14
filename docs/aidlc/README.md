@@ -8,6 +8,8 @@ The actual application (a Vite + React + TypeScript project scaffolded per `02-a
 
 **v1.5 (BRD) resolves §12 item 2**, designing **League Creation**, **League Settings**, **Invitations**, and **League Members** (F-UI-001.9–001.12, BRD §8.21–8.24) — again with no mock-up to interpret, directly from the backend's already-implemented League-management surface. This surfaced the second-most-consequential finding in this project alongside Score Corrections': the backend's own `leaveLeague` error references "transferring administration," but no endpoint or rule anywhere in the API actually implements a transfer mechanism — recorded as a new open gap (BRD §12 item 13) rather than designed around, since there's nothing to design against. Two smaller findings (API Consumption Specification v1.14): `Invitation` carries no `channel` field, so its list has no Channel column; and League Settings deliberately excludes `tieBreakRulesetVersion` from its editable fields, since it's an internal implementation identifier rather than a business-facing policy value. Every screen's implementation, reconciliation findings, and resulting scope decisions are recorded across this pipeline's documents — nothing under `src/screens/` remains a placeholder.
 
+**v1.6 (BRD) resolves §12 item 11**, the Draft-Paused-state gap open since v1.2, scoped to **Draft Board only** by explicit choice — Makeup Picks & Timeouts remains unbuilt, with a forward-looking note (§8.10) for applying the same treatment once it's actually built. This is the first gap in this project with **zero** backend `BR-###` rules to design from at all — not even a milder version of the pattern every other gap resolution had. The design is deliberately conservative wherever the contract is silent (API Consumption Specification v1.15, §2.3ab): `pauseDraft`/`resumeDraft` confirm no request/response beyond the bare `Draft` object and no documented error responses at all, `Draft` carries no field recording remaining time at pause, and `makeDraftPick` documents no paused-draft rejection either. Rather than guess at undocumented backend behavior, Draft Board disables the Draft action client-side for every manager while paused and replaces the timer display entirely with a static "Paused" indicator, never a frozen or fabricated countdown value.
+
 ## Relationship to the backend repository
 
 This UI is a client of the domain already specified in `fantasy-premier-league`. It does not re-derive business rules — it interprets them into screens, interactions, and presentation-layer requirements. Wherever a UI requirement exists to surface or enforce a rule owned by the backend, this documentation cites that rule's `BR-###` identifier rather than restating it. The backend's own pipeline artifacts are the authoritative source for those rules:
@@ -52,15 +54,15 @@ Every artifact is **append-only**, exactly as in the backend repository: a chang
 
 | Stage | Latest version |
 |---|---|
-| Requirements (BRD) | v1.5 |
-| Architecture | v1.4 |
-| Epic and Feature Backlog | v1.2 |
+| Requirements (BRD) | v1.6 |
+| Architecture | v1.5 |
+| Epic and Feature Backlog | v1.3 |
 | Feature Behavior Specs — Phase 1 | v1.2 |
-| Feature Behavior Specs — Phase 2 | v1.0 |
+| Feature Behavior Specs — Phase 2 | v1.1 |
 | Feature Behavior Specs — Phase 3 | v1.0 |
 | Feature Behavior Specs — Phase 4 | v1.0 |
-| API Consumption Specification | v1.14 |
+| API Consumption Specification | v1.15 |
 
 ## Not yet produced
 
-`06-database-migrations` onward (repurposed stages — build/test tooling, implementation task breakdown; see §"Pipeline stages" above). Also not yet produced anywhere in this pipeline: administrator transfer (BRD §12 item 13 — no backend mechanism exists to design a UI against), and a design for the Draft-Paused state discovered in BRD v1.2 (§12 item 11). Both original §12 items 1 and 2 (authentication/onboarding, league-creation/administration-setup) are now fully resolved, in BRD v1.4 and v1.5 respectively.
+`06-database-migrations` onward (repurposed stages — build/test tooling, implementation task breakdown; see §"Pipeline stages" above). Also not yet produced anywhere in this pipeline: administrator transfer (BRD §12 item 13 — no backend mechanism exists to design a UI against), and the Draft-Paused treatment for Makeup Picks & Timeouts specifically, since that screen itself remains unbuilt (BRD §8.10's forward-looking note covers it once it exists). §12 items 1, 2, and 11 (authentication/onboarding, league-creation/administration-setup, Draft-Paused for Draft Board) are now fully resolved, in BRD v1.4, v1.5, and v1.6 respectively.

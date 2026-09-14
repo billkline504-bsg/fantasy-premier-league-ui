@@ -10,11 +10,11 @@ Every requirement, architecture decision, and feature spec behind this client li
 [`docs/aidlc/`](docs/aidlc/README.md), following the same AIDLC pipeline convention as the
 backend repository:
 
-- [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.5)
-- [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.4)
-- [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog (latest: v1.2)
+- [`01-requirements/`](docs/aidlc/01-requirements/) — Business Requirements Document (latest: v1.6)
+- [`02-architecture/`](docs/aidlc/02-architecture/) — Frontend architecture (latest: v1.5)
+- [`03-epics-and-backlog/`](docs/aidlc/03-epics-and-backlog/) — Feature backlog (latest: v1.3)
 - [`04-user-stories/`](docs/aidlc/04-user-stories/) — Given/When/Then acceptance criteria, by phase
-- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.14)
+- [`05-api-specification/`](docs/aidlc/05-api-specification/) — Vendored backend OpenAPI spec + this client's consumption contract (latest: v1.15)
 - [`mockup/`](docs/mockup/) — The illustrative HTML mock-up this UI was originally interpreted from
 
 Read `docs/aidlc/README.md` first — it explains the pipeline and points at the current baseline
@@ -92,7 +92,11 @@ Creation, League Settings, Invitations, and League Members:
   only** (see below).
 - **Draft Board** (`src/screens/draft/`) — snake draft order, on-the-clock timer, the available
   player pool (filter/sort/search via the shared `PlayerTable` component), recent picks, and
-  pick submission, per BRD UIR-099–109, **available players only** (see below).
+  pick submission, per BRD UIR-099–109, **available players only** (see below). Also implements
+  BRD UIR-214–218 (v1.6): a paused-state explanation banner, picks blocked for every manager
+  while paused, the timer display replaced (not frozen or left running) by a static "Paused"
+  indicator, and a League-Administrator-only Pause/Resume control — see below for why this is
+  deliberately conservative where the backend's own contract is silent.
 - **Squad** (`src/screens/squad/`) — full squad summary, acquisition-method badges, and the
   specific replacement-eligibility reason (cross-referenced against unspent replacement
   opportunities), per BRD UIR-055–063 — the second real use of `PlayerTable`.
@@ -209,8 +213,8 @@ interpret:
   platform has no way yet to transfer that role, rather than failing with a generic error, per
   BRD UIR-208–213.
 
-Building these against the real API rather than the mock-up surfaced twenty-eight backend
-data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.14:
+Building these against the real API rather than the mock-up surfaced twenty-nine backend
+data-availability/model gaps, recorded in API Consumption Specification v1.1–v1.15:
 
 - No phone-number field exists on the user profile despite the BRD depicting one; the
   profile-icon catalog is an image-asset reference with no stated hosting convention.
@@ -228,6 +232,13 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
 - The shared `sort` parameter's documented example values don't match either `getDraftPlayerPool`'s
   or `getSquad`'s actual schema field names — this client sends the schema names, unconfirmed
   against the running API either way.
+- **`pauseDraft`/`resumeDraft` have no documented error responses and `Draft` has no field
+  recording remaining time at pause; `makeDraftPick` has no documented paused-draft rejection
+  either.** A first for this project — even every other gap resolved so far had real `BR-###`
+  rules to design from once picked up; this one has none anywhere in the backend BRD at all.
+  Rather than guess, Draft Board disables the Draft action client-side for every manager while
+  paused (never trusting undocumented backend enforcement) and replaces the timer display
+  entirely with a static "Paused" indicator (never a frozen or guessed countdown value).
 - There's no "current Gameweek" endpoint (a fourth instance of the same "no current-X" pattern
   already seen for seasons and drafts), and `LeagueMessage` has no category field, so
   Dashboard's news feed is the real Messages feed with no Admin/Injury/Result tag — that would
@@ -284,7 +295,9 @@ data-availability/model gaps, recorded in API Consumption Specification v1.1–v
 
 Every screen from the mock-up, plus the eight auth/onboarding and league-administration
 screens BRD v1.4/v1.5 added beyond it, are now implemented — nothing under `src/screens/`
-remains a scaffold placeholder. `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx`
+remains a scaffold placeholder. BRD v1.6 additionally resolves the long-open Draft-Paused gap
+(§12 item 11) for Draft Board specifically — Makeup Picks & Timeouts remains unbuilt, with a
+note in the BRD for applying the same treatment once it exists. `src/state/ActiveLeagueProvider.tsx` and `src/routes/guards.tsx`
 both still carry `TODO`s for wiring up real league-membership/admin-role data once it's
 available — the auth/league-admin screens work around this narrowly (calling `listMyLeagues`
 directly for post-login landing) rather than fixing it, so read those `TODO`s before assuming

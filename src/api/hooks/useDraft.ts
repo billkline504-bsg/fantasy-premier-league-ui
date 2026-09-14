@@ -84,6 +84,28 @@ export function useDraftSelections(draftId: string | undefined, pageSize = 50) {
   });
 }
 
+/**
+ * `pauseDraft`/`resumeDraft` (BRD UIR-217): League-Administrator-only, no request body, return
+ * the full `Draft` object with no documented error responses. Both invalidate the same draft
+ * query the 3-5s poll (above) already holds, so a pause/resume this client itself triggers
+ * reflects immediately rather than waiting for the next poll tick.
+ */
+export function usePauseDraft(draftId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await apiRequest<Draft>(`/drafts/${draftId}/pause`, { method: 'POST' })).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: draftQueryKey(draftId) }),
+  });
+}
+
+export function useResumeDraft(draftId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await apiRequest<Draft>(`/drafts/${draftId}/resume`, { method: 'POST' })).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: draftQueryKey(draftId) }),
+  });
+}
+
 export function useMakeDraftPick(draftId: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({

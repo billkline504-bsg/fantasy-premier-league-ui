@@ -7,7 +7,9 @@ import { LoadingState } from '../../components/LoadingState';
 import { ErrorState } from '../../components/ErrorState';
 import { ApiError } from '../../api/client';
 
-// Implements BRD UIR-102, UIR-103, UIR-106.
+// Implements BRD UIR-102, UIR-103, UIR-106, UIR-215 (Draft action disabled for everyone,
+// including the on-clock team, while the draft is Paused — enforced client-side regardless of
+// what the backend actually does, since it documents no paused-draft rejection at all).
 //
 // API Consumption Specification v1.3 §2.3g-adjacent note: `getDraftPlayerPool` returns only
 // *undrafted* players (its own summary says "Remaining undrafted players") — there is no
@@ -81,7 +83,11 @@ export function DraftPlayerPool({ draft, isMyTurn }: { draft: Draft; isMyTurn: b
       key: 'action',
       label: '',
       render: (row: DraftPlayerPoolEntry) => (
-        <button type="button" disabled={!isMyTurn || makePick.isPending} onClick={() => handleDraft(row.playerId)}>
+        <button
+          type="button"
+          disabled={!isMyTurn || makePick.isPending || draft.status === 'Paused'}
+          onClick={() => handleDraft(row.playerId)}
+        >
           Draft
         </button>
       ),

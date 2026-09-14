@@ -1,16 +1,24 @@
+import { useState } from 'react';
 import { useActiveLeague } from '../../state/useActiveLeague';
-import { useCurrentSeason, useFantasyTeams, useMyFantasyTeam, useLeagueConfiguration } from '../../api/hooks/useLeagueSeason';
-import { useCurrentDraft, useDraft, useDraftSelections } from '../../api/hooks/useDraft';
+import {
+  useCurrentSeason,
+  useFantasyTeams,
+  useMyFantasyTeam,
+  useLeagueConfiguration,
+  useMyMembership,
+} from '../../api/hooks/useLeagueSeason';
+import { useCurrentDraft, useDraft, useDraftSelections, usePauseDraft, useResumeDraft } from '../../api/hooks/useDraft';
 import { LoadingState } from '../../components/LoadingState';
 import { ErrorState } from '../../components/ErrorState';
 import { EmptyState } from '../../components/EmptyState';
+import { RuleBanner } from '../../components/RuleBanner';
 import { DraftOrderPanel } from './DraftOrderPanel';
 import { OnClockPanel } from './OnClockPanel';
 import { RecentPicksPanel } from './RecentPicksPanel';
 import { DraftPlayerPool } from './DraftPlayerPool';
 import { resolveOnClockFantasyTeamId } from './draftTurn';
 
-// Implements BRD UIR-099–109 (F-UI-002.1/F-UI-002.2).
+// Implements BRD UIR-099–109, UIR-214–218 (F-UI-002.1/F-UI-002.2).
 
 const ROUND_TOTAL_FIELD = {
   Initial: 'initialSquadSize',
@@ -27,6 +35,7 @@ export function DraftBoardScreen() {
   const myFantasyTeam = useMyFantasyTeam(activeLeagueId, season.data?.seasonId);
   const selections = useDraftSelections(draft.data?.draftId);
   const configuration = useLeagueConfiguration(activeLeagueId);
+  const myMembership = useMyMembership(activeLeagueId);
 
   if (season.isPending || draft.isPending || fantasyTeams.isPending) {
     return <LoadingState label="Loading the draft…" />;
@@ -73,6 +82,16 @@ export function DraftBoardScreen() {
         <h1 style={{ fontSize: '1.5rem' }}>Draft Board</h1>
       </div>
 
+      {myMembership.data?.isAdministrator && (
+        <PauseResumeControl draftId={activeDraft.draftId} status={activeDraft.status} />
+      )}
+
+      {activeDraft.status === 'Paused' && (
+        <RuleBanner>
+          This draft is paused. No picks can be made until a League Administrator resumes it.
+        </RuleBanner>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '230px 1fr 260px', gap: 18, alignItems: 'start' }}>
         <DraftOrderPanel draft={activeDraft} fantasyTeamsById={fantasyTeamsById} />
 
@@ -87,6 +106,40 @@ export function DraftBoardScreen() {
           <RecentPicksPanel selections={selections.data.items} fantasyTeamsById={fantasyTeamsById} />
         )}
       </div>
+    </div>
+  );
+}
+
+// Implements BRD UIR-217: League-Administrator-only Pause/Resume control, the same
+// access-gating pattern as Audit Log/Score Corrections/League Settings (Architecture ADR-016).
+function PauseResumeControl({ draftId, status }: { draftId: string; status: 'Scheduled' | 'InProgress' | 'Paused' | 'Completed' }) {
+  const pauseDraft = usePauseDraft(draftId);
+  const resumeDraft = useResumeDraft(draftId);
+  const [error, setError] = useState<string | null>(null);
+
+  if (status !== 'InProgress' && status !== 'Paused') return null;
+
+  async function handleClick() {
+    setError(null);
+    try {
+      if (status === 'Paused') {
+        await resumeDraft.mutateAsync();
+      } else {
+        await pauseDraft.mutateAsync();
+      }
+    } catch {
+      setError(status === 'Paused' ? 'Could not resume the draft — try again.' : 'Could not pause the draft — try again.');
+    }
+  }
+
+  const isPending = pauseDraft.isPending || resumeDraft.isPending;
+
+  return (
+    <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <button type="button" onClick={handleClick} disabled={isPending}>
+        {status === 'Paused' ? 'Resume Draft' : 'Pause Draft'}
+      </button>
+      {error && <span style={{ fontSize: '0.8rem', color: 'var(--danger, #c0392b)' }}>{error}</span>}
     </div>
   );
 }

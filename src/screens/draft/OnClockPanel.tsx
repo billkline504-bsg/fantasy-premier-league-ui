@@ -6,6 +6,11 @@ import { resolveOnClockFantasyTeamId } from './draftTurn';
 // pick timer's expiration; notes that an administrator may extend it (the actual extend
 // control is out of scope for this pass — BRD §12 item 10 / API Consumption Specification
 // §2.2 already flag that it still needs designing).
+//
+// UIR-216: while the draft is Paused, the countdown is replaced entirely by a static "Paused"
+// indicator, never frozen at or still running against `currentPickDeadline` — `Draft` carries
+// no field recording what the remaining time was at the moment of pause, so showing any
+// specific value here would be a guess this client can't confirm (Architecture ADR-017).
 
 export function OnClockPanel({
   draft,
@@ -25,13 +30,19 @@ export function OnClockPanel({
       <div style={{ fontSize: '1.5rem', fontWeight: 700, margin: '6px 0 2px' }}>
         {team?.username ?? onClockTeamId ?? '—'}
       </div>
-      {draft.currentPickDeadline && (
-        <div style={{ fontSize: '2rem', color: 'var(--gold)' }}>
-          <CountdownClock target={new Date(draft.currentPickDeadline)} format="ms" />
-        </div>
+      {draft.status === 'Paused' ? (
+        <div style={{ fontSize: '2rem', color: 'var(--ink-muted)', fontWeight: 700 }}>Paused</div>
+      ) : (
+        draft.currentPickDeadline && (
+          <div style={{ fontSize: '2rem', color: 'var(--gold)' }}>
+            <CountdownClock target={new Date(draft.currentPickDeadline)} format="ms" />
+          </div>
+        )
       )}
       <div style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
-        Pick {pickNumber} · An Administrator may extend the timer
+        {draft.status === 'Paused'
+          ? 'Pick ' + pickNumber
+          : `Pick ${pickNumber} · An Administrator may extend the timer`}
       </div>
     </div>
   );
