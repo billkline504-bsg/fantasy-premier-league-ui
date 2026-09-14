@@ -21,6 +21,7 @@ export function OnClockPanel({
 }) {
   const onClockTeamId = resolveOnClockFantasyTeamId(draft);
   const team = onClockTeamId ? fantasyTeamsById.get(onClockTeamId) : undefined;
+  const isPaused = draft.status === 'Paused';
   // Inferred (see draftTurn.ts): overall pick number, assuming pickIndex resets each round.
   const pickNumber = (draft.currentRound - 1) * draft.draftOrder.length + draft.currentPickIndex + 1;
 
@@ -30,19 +31,15 @@ export function OnClockPanel({
       <div style={{ fontSize: '1.5rem', fontWeight: 700, margin: '6px 0 2px' }}>
         {team?.username ?? onClockTeamId ?? '—'}
       </div>
-      {draft.status === 'Paused' ? (
-        <div style={{ fontSize: '2rem', color: 'var(--ink-muted)', fontWeight: 700 }}>Paused</div>
-      ) : (
-        draft.currentPickDeadline && (
-          <div style={{ fontSize: '2rem', color: 'var(--gold)' }}>
-            <CountdownClock target={new Date(draft.currentPickDeadline)} format="ms" />
-          </div>
-        )
+      {isPaused && <div style={{ fontSize: '2rem', color: 'var(--ink-muted)', fontWeight: 700 }}>Paused</div>}
+      {!isPaused && draft.currentPickDeadline && (
+        <div style={{ fontSize: '2rem', color: 'var(--gold)' }}>
+          <CountdownClock target={new Date(draft.currentPickDeadline)} format="ms" />
+        </div>
       )}
       <div style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
-        {draft.status === 'Paused'
-          ? 'Pick ' + pickNumber
-          : `Pick ${pickNumber} · An Administrator may extend the timer`}
+        Pick {pickNumber}
+        {!isPaused && ' · An Administrator may extend the timer'}
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import {
   useMyMembership,
 } from '../../api/hooks/useLeagueSeason';
 import { useCurrentDraft, useDraft, useDraftSelections, usePauseDraft, useResumeDraft } from '../../api/hooks/useDraft';
+import type { DraftStatus } from '../../api/types';
 import { LoadingState } from '../../components/LoadingState';
 import { ErrorState } from '../../components/ErrorState';
 import { EmptyState } from '../../components/EmptyState';
@@ -56,6 +57,7 @@ export function DraftBoardScreen() {
 
   const roundTotalField = ROUND_TOTAL_FIELD[activeDraft.draftType];
   const totalRounds = roundTotalField ? configuration.data?.[roundTotalField] : undefined;
+  const isPaused = activeDraft.status === 'Paused';
 
   if (activeDraft.status === 'Completed') {
     return (
@@ -77,7 +79,7 @@ export function DraftBoardScreen() {
         <div style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', textTransform: 'uppercase' }}>
           {activeDraft.draftType} Draft · Round {activeDraft.currentRound}
           {totalRounds ? ` of ${totalRounds}` : ''}
-          {activeDraft.status === 'Paused' ? ' · Paused' : ''}
+          {isPaused ? ' · Paused' : ''}
         </div>
         <h1 style={{ fontSize: '1.5rem' }}>Draft Board</h1>
       </div>
@@ -86,7 +88,7 @@ export function DraftBoardScreen() {
         <PauseResumeControl draftId={activeDraft.draftId} status={activeDraft.status} />
       )}
 
-      {activeDraft.status === 'Paused' && (
+      {isPaused && (
         <RuleBanner>
           This draft is paused. No picks can be made until a League Administrator resumes it.
         </RuleBanner>
@@ -112,34 +114,35 @@ export function DraftBoardScreen() {
 
 // Implements BRD UIR-217: League-Administrator-only Pause/Resume control, the same
 // access-gating pattern as Audit Log/Score Corrections/League Settings (Architecture ADR-016).
-function PauseResumeControl({ draftId, status }: { draftId: string; status: 'Scheduled' | 'InProgress' | 'Paused' | 'Completed' }) {
+function PauseResumeControl({ draftId, status }: { draftId: string; status: DraftStatus }) {
   const pauseDraft = usePauseDraft(draftId);
   const resumeDraft = useResumeDraft(draftId);
   const [error, setError] = useState<string | null>(null);
 
   if (status !== 'InProgress' && status !== 'Paused') return null;
 
+  const isPaused = status === 'Paused';
+  const isBusy = pauseDraft.isPending || resumeDraft.isPending;
+
   async function handleClick() {
     setError(null);
     try {
-      if (status === 'Paused') {
+      if (isPaused) {
         await resumeDraft.mutateAsync();
       } else {
         await pauseDraft.mutateAsync();
       }
     } catch {
-      setError(status === 'Paused' ? 'Could not resume the draft — try again.' : 'Could not pause the draft — try again.');
+      setError(isPaused ? 'Could not resume the draft — try again.' : 'Could not pause the draft — try again.');
     }
   }
 
-  const isPending = pauseDraft.isPending || resumeDraft.isPending;
-
   return (
     <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-      <button type="button" onClick={handleClick} disabled={isPending}>
-        {status === 'Paused' ? 'Resume Draft' : 'Pause Draft'}
+      <button type="button" onClick={handleClick} disabled={isBusy}>
+        {isPaused ? 'Resume Draft' : 'Pause Draft'}
       </button>
-      {error && <span style={{ fontSize: '0.8rem', color: 'var(--danger, #c0392b)' }}>{error}</span>}
+      {error && <span style={{ fontSize: '0.8rem', color: 'var(--live)' }}>{error}</span>}
     </div>
   );
 }
